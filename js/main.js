@@ -377,42 +377,44 @@ function updateTracePanel() {
   }
   elements.traceContent.append(selectedDetails);
 
-  const routeSection = document.createElement('section');
-  routeSection.className = 'route-playback';
-  routeSection.setAttribute('aria-labelledby', 'route-playback-heading');
-  addText(routeSection, 'h3', 'Solution route', 'route-playback-heading').id = 'route-playback-heading';
-  addText(routeSection, 'p', 'DFS route found · this route is not presented as shortest.', 'route-status');
-  const routeState = routeStates[routeCursor];
-  renderBoardSnapshot(routeSection, routeState, `Route board ${routeCursor + 1} of ${routeStates.length}`);
-  const moveLabel = routeCursor === 0 ? 'Start board' : `After move ${routeCursor}: move the blank ${traceResult.moves[routeCursor - 1].toLowerCase()}.`;
-  addText(routeSection, 'p', moveLabel, 'route-step-label');
-  const routeControls = document.createElement('div');
-  routeControls.className = 'trace-step-controls';
-  const routePrevious = document.createElement('button');
-  routePrevious.id = 'route-previous-move';
-  routePrevious.type = 'button';
-  routePrevious.className = 'btn btn-outline-secondary';
-  routePrevious.textContent = 'Previous move';
-  routePrevious.disabled = routeCursor === 0;
-  routePrevious.addEventListener('click', () => {
-    routeCursor = Math.max(0, routeCursor - 1);
-    updateTracePanel();
-    document.querySelector(routeCursor === 0 ? '#route-next-move' : '#route-previous-move')?.focus({ preventScroll: true });
-  });
-  const routeNext = document.createElement('button');
-  routeNext.id = 'route-next-move';
-  routeNext.type = 'button';
-  routeNext.className = 'btn btn-outline-primary';
-  routeNext.textContent = 'Next move';
-  routeNext.disabled = routeCursor >= routeStates.length - 1;
-  routeNext.addEventListener('click', () => {
-    routeCursor = Math.min(routeStates.length - 1, routeCursor + 1);
-    updateTracePanel();
-    document.querySelector(routeCursor >= routeStates.length - 1 ? '#route-previous-move' : '#route-next-move')?.focus({ preventScroll: true });
-  });
-  routeControls.append(routePrevious, routeNext);
-  routeSection.append(routeControls);
-  elements.traceContent.append(routeSection);
+  if (traceResult.status === 'found') {
+    const routeSection = document.createElement('section');
+    routeSection.className = 'route-playback';
+    routeSection.setAttribute('aria-labelledby', 'route-playback-heading');
+    addText(routeSection, 'h3', 'Solution route', 'route-playback-heading').id = 'route-playback-heading';
+    addText(routeSection, 'p', 'DFS route found · this route is not presented as shortest.', 'route-status');
+    const routeState = routeStates[routeCursor];
+    renderBoardSnapshot(routeSection, routeState, `Route board ${routeCursor + 1} of ${routeStates.length}`);
+    const moveLabel = routeCursor === 0 ? 'Start board' : `After move ${routeCursor}: move the blank ${traceResult.moves[routeCursor - 1].toLowerCase()}.`;
+    addText(routeSection, 'p', moveLabel, 'route-step-label');
+    const routeControls = document.createElement('div');
+    routeControls.className = 'trace-step-controls';
+    const routePrevious = document.createElement('button');
+    routePrevious.id = 'route-previous-move';
+    routePrevious.type = 'button';
+    routePrevious.className = 'btn btn-outline-secondary';
+    routePrevious.textContent = 'Previous move';
+    routePrevious.disabled = routeCursor === 0;
+    routePrevious.addEventListener('click', () => {
+      routeCursor = Math.max(0, routeCursor - 1);
+      updateTracePanel();
+      document.querySelector(routeCursor === 0 ? '#route-next-move' : '#route-previous-move')?.focus({ preventScroll: true });
+    });
+    const routeNext = document.createElement('button');
+    routeNext.id = 'route-next-move';
+    routeNext.type = 'button';
+    routeNext.className = 'btn btn-outline-primary';
+    routeNext.textContent = 'Next move';
+    routeNext.disabled = routeCursor >= routeStates.length - 1;
+    routeNext.addEventListener('click', () => {
+      routeCursor = Math.min(routeStates.length - 1, routeCursor + 1);
+      updateTracePanel();
+      document.querySelector(routeCursor >= routeStates.length - 1 ? '#route-previous-move' : '#route-next-move')?.focus({ preventScroll: true });
+    });
+    routeControls.append(routePrevious, routeNext);
+    routeSection.append(routeControls);
+    elements.traceContent.append(routeSection);
+  }
 }
 
 function showTraceError() {
