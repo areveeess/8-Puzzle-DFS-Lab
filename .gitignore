@@ -1,1 +1,17 @@
+# AI Agent & Planning Artifacts
 .planning/
+.agents/
+.taste-skill/
+.taste-skill-direction.txt
+.impeccable/
+.gsd/
+AGENTS.md
+PRODUCT.md
+skills-lock.json
+# University / Course Exam Materials
+assignment-materials/
+# OS & Environment Files
+.DS_Store
+Thumbs.db
+*.log
+node_modules/
