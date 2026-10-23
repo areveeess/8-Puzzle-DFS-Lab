@@ -535,7 +535,7 @@ function runSearch({ limit = Number(elements.searchLimit.value), allowUnreachabl
     updateValidation();
   });
 
-  worker.postMessage({ runId, start: runStart, goal: runGoal, limit });
+  worker.postMessage({ runId, start: [...boards.start], goal: [...boards.goal], limit });
 }
 
 function openExhaustiveConfirmation() {
