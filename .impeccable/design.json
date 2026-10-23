@@ -1,0 +1,384 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-23T13:20:37Z",
+  "title": "Design System: 8-Puzzle DFS Lab",
+  "extensions": {
+    "colorMeta": {
+      "route-teal": {
+        "role": "primary",
+        "displayName": "Route Teal",
+        "canonical": "#1b6c80",
+        "tonalRamp": [
+          "#000e13",
+          "#002a35",
+          "#004a5a",
+          "#1b6c80",
+          "#438ea3",
+          "#67b1c7",
+          "#8bd6ec",
+          "#d5f5ff"
+        ]
+      },
+      "route-teal-deep": {
+        "role": "primary",
+        "displayName": "Deep Route Teal",
+        "canonical": "#145361",
+        "tonalRamp": [
+          "#000e12",
+          "#002a34",
+          "#064a58",
+          "#306a79",
+          "#528c9b",
+          "#75b0bf",
+          "#98d4e4",
+          "#d3f6ff"
+        ]
+      },
+      "ground": {
+        "role": "neutral",
+        "displayName": "Blue-Grey Ground",
+        "canonical": "#eaf1f3",
+        "tonalRamp": [
+          "#080c0d",
+          "#212628",
+          "#3d4345",
+          "#5c6264",
+          "#7d8485",
+          "#a0a6a8",
+          "#c4cacc",
+          "#e9f0f2"
+        ]
+      },
+      "sheet": {
+        "role": "neutral",
+        "displayName": "Working-Sheet White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a5a5a5",
+          "#c9c9c9",
+          "#eeeeee"
+        ]
+      },
+      "raised": {
+        "role": "neutral",
+        "displayName": "Raised Panel",
+        "canonical": "#f6f9fa",
+        "tonalRamp": [
+          "#0a0b0c",
+          "#232526",
+          "#404243",
+          "#5f6262",
+          "#808384",
+          "#a3a5a6",
+          "#c7cacb",
+          "#eceff0"
+        ]
+      },
+      "selection": {
+        "role": "neutral",
+        "displayName": "Selection Wash",
+        "canonical": "#e4f0f2",
+        "tonalRamp": [
+          "#050d0e",
+          "#1e2728",
+          "#3a4446",
+          "#596365",
+          "#7a8586",
+          "#9ca7a9",
+          "#c0ccce",
+          "#e5f1f3"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Quiet Border",
+        "canonical": "#d7e1e4",
+        "tonalRamp": [
+          "#060c0e",
+          "#1f2729",
+          "#3b4446",
+          "#5a6366",
+          "#7b8487",
+          "#9da7aa",
+          "#c1cbce",
+          "#e6f1f4"
+        ]
+      },
+      "divider": {
+        "role": "neutral",
+        "displayName": "Divider Mist",
+        "canonical": "#e7edef",
+        "tonalRamp": [
+          "#080c0d",
+          "#212627",
+          "#3e4345",
+          "#5d6264",
+          "#7e8385",
+          "#a0a6a8",
+          "#c4cacc",
+          "#eaf0f2"
+        ]
+      },
+      "control-stroke": {
+        "role": "neutral",
+        "displayName": "Control Stroke",
+        "canonical": "#c5d2d6",
+        "tonalRamp": [
+          "#050d0f",
+          "#1d272a",
+          "#394447",
+          "#586467",
+          "#798588",
+          "#9ba8ab",
+          "#bfccd0",
+          "#e4f1f5"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#172127",
+        "tonalRamp": [
+          "#040c12",
+          "#1c272d",
+          "#39444a",
+          "#58636a",
+          "#78848c",
+          "#9ba7af",
+          "#becbd4",
+          "#e3f1f9"
+        ]
+      },
+      "muted-ink": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "#485960",
+        "tonalRamp": [
+          "#020d13",
+          "#18282e",
+          "#34454c",
+          "#53646c",
+          "#74868d",
+          "#96a9b0",
+          "#b9cdd5",
+          "#def2fb"
+        ]
+      },
+      "success-green": {
+        "role": "neutral",
+        "displayName": "Success Green",
+        "canonical": "#17633f",
+        "tonalRamp": [
+          "#000f06",
+          "#002e19",
+          "#00502f",
+          "#29714c",
+          "#4d936c",
+          "#70b78e",
+          "#94dcb2",
+          "#c4ffdb"
+        ]
+      },
+      "error-red": {
+        "role": "neutral",
+        "displayName": "Error Red",
+        "canonical": "#9c1d2b",
+        "tonalRamp": [
+          "#1f0002",
+          "#4c000b",
+          "#80001a",
+          "#aa2c36",
+          "#d15256",
+          "#fa7677",
+          "#ffb2af",
+          "#ffe8e7"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Compact page title and search outcome."
+      },
+      "title": {
+        "displayName": "Section Title",
+        "purpose": "Board, control, and section headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Instructions and explanations."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Board roles, metadata, and secondary status."
+      },
+      "mono": {
+        "displayName": "Mono Data",
+        "purpose": "Register number, route indices, and measured statistics."
+      },
+      "tile": {
+        "displayName": "Puzzle Tile",
+        "purpose": "Centered numeric values in the 3×3 board controls."
+      }
+    },
+    "shadows": [
+      {
+        "name": "dialog-float",
+        "value": "0 14px 34px rgb(20 48 57 / 20%)",
+        "purpose": "The confirmation dialog sits above a dimmed page."
+      }
+    ],
+    "motion": [
+      {
+        "name": "control-state",
+        "value": "140ms ease",
+        "purpose": "Border and background state changes on controls and puzzle tiles."
+      },
+      {
+        "name": "route-reveal",
+        "value": "260ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Reveals the ordered route when its native disclosure opens."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "0.01ms",
+        "purpose": "Reduces animation and transition duration when the user requests reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "workspace-stack",
+        "value": "980px"
+      },
+      {
+        "name": "phone",
+        "value": "600px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Starts the bounded DFS search.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">Run DFS search</button>",
+      "css": ".ds-btn-primary { min-height: 40px; padding: 0.55rem 0.9rem; border: 1px solid var(--accent); border-radius: var(--radius-control); background: var(--accent); color: #fff; font: 500 14px/1.5 \"IBM Plex Sans\", Inter, system-ui, sans-serif; transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease; } .ds-btn-primary:hover:not(:disabled) { border-color: var(--accent-dark); background: var(--accent-dark); color: #fff; } .ds-btn-primary:disabled { border-color: #6e9098; background: #6e9098; color: #fff; cursor: not-allowed; } .ds-btn-primary:focus-visible { border-color: var(--accent); outline: 3px solid var(--accent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Primary Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline-primary",
+      "description": "Generates a solvable starting board.",
+      "html": "<button class=\"ds-btn-outline-primary\" type=\"button\">Generate start</button>",
+      "css": ".ds-btn-outline-primary { min-height: 40px; padding: 0.55rem 0.9rem; border: 1px solid var(--accent); border-radius: var(--radius-control); background: transparent; color: var(--accent-dark); font: 500 14px/1.5 \"IBM Plex Sans\", Inter, system-ui, sans-serif; transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease; } .ds-btn-outline-primary:hover:not(:disabled) { border-color: var(--accent); background: var(--active); color: var(--accent-dark); } .ds-btn-outline-primary:focus-visible { border-color: var(--accent); outline: 3px solid var(--accent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline-secondary",
+      "description": "Cancels or backs out of an exceptional action.",
+      "html": "<button class=\"ds-btn-outline-secondary\" type=\"button\">Cancel</button>",
+      "css": ".ds-btn-outline-secondary { min-height: 40px; padding: 0.55rem 0.9rem; border: 1px solid #637178; border-radius: var(--radius-control); background: transparent; color: #34434a; font: 500 14px/1.5 \"IBM Plex Sans\", Inter, system-ui, sans-serif; transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease; } .ds-btn-outline-secondary:hover:not(:disabled) { border-color: #34434a; background: #edf2f3; color: #1d2a30; } .ds-btn-outline-secondary:focus-visible { border-color: var(--accent); outline: 3px solid var(--accent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Search Settings Select",
+      "kind": "input",
+      "refersTo": "select-field",
+      "description": "Native select for difficulty or the expansion limit.",
+      "html": "<label class=\"ds-field-label\" for=\"ds-limit\">Expansion limit</label><select class=\"ds-select\" id=\"ds-limit\"><option>2,000 expansions</option><option>10,000 expansions</option><option>25,000 expansions</option></select>",
+      "css": ".ds-field-label { display: block; margin: 2px 0 6px; color: var(--text); font: 500 14px/1.5 \"IBM Plex Sans\", Inter, system-ui, sans-serif; } .ds-select { display: block; width: 100%; min-height: 38px; padding: 0.375rem 2.25rem 0.375rem 0.75rem; border: 1px solid var(--control); border-radius: var(--radius-control); background-color: #fff; color: var(--text); font: 400 14px/1.5 \"IBM Plex Sans\", Inter, system-ui, sans-serif; } .ds-select:focus-visible { border-color: var(--accent); outline: 3px solid var(--accent); outline-offset: 2px; } @media (max-width: 600px) { .ds-select { min-height: 44px; } }"
+    },
+    {
+      "name": "Board Panel",
+      "kind": "card",
+      "refersTo": "board-panel",
+      "description": "Frames one board and its start or target label.",
+      "html": "<section class=\"ds-board-panel\"><div class=\"ds-board-panel-heading\"><h3>Initial board</h3><span>Start state</span></div><div class=\"ds-board-sample\"><span>7</span><span>2</span><span>4</span><span>5</span><span>1</span><span>8</span><span>3</span><span>6</span><span></span></div></section>",
+      "css": ".ds-board-panel { padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-card); background: var(--raised); color: var(--text); } .ds-board-panel-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; margin-bottom: 14px; } .ds-board-panel-heading h3 { margin: 0; font: 600 16px/1.35 \"IBM Plex Sans\", Inter, system-ui, sans-serif; } .ds-board-panel-heading span { color: var(--muted); font: 400 12px/1.5 \"IBM Plex Sans\", Inter, system-ui, sans-serif; } .ds-board-sample { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; max-width: 306px; margin-inline: auto; } .ds-board-sample span { display: grid; aspect-ratio: 1; place-items: center; border: 1px solid var(--control); border-radius: var(--radius-control); background: #fff; color: var(--text); font: 500 24px/1 \"IBM Plex Mono\", monospace; } .ds-board-sample span:last-child { border-color: #86aeb6; background: var(--active); }"
+    },
+    {
+      "name": "Puzzle Tile Selectors",
+      "kind": "custom",
+      "refersTo": "puzzle-tile",
+      "description": "A square 3×3 group of native selects for editing board values.",
+      "html": "<div class=\"ds-puzzle-grid\" role=\"group\" aria-label=\"Initial board\"><select class=\"ds-puzzle-tile\" aria-label=\"Tile 1\"><option selected>7</option><option>1</option><option>2</option></select><select class=\"ds-puzzle-tile\" aria-label=\"Tile 2\"><option selected>2</option><option>1</option><option>3</option></select><select class=\"ds-puzzle-tile\" aria-label=\"Tile 3\"><option selected>4</option><option>3</option><option>5</option></select><select class=\"ds-puzzle-tile\" aria-label=\"Tile 4\"><option selected>5</option><option>4</option><option>6</option></select><select class=\"ds-puzzle-tile\" aria-label=\"Tile 5\"><option selected>1</option><option>2</option><option>5</option></select><select class=\"ds-puzzle-tile\" aria-label=\"Tile 6\"><option selected>8</option><option>7</option><option></option></select><select class=\"ds-puzzle-tile\" aria-label=\"Tile 7\"><option selected>3</option><option>2</option><option>6</option></select><select class=\"ds-puzzle-tile\" aria-label=\"Tile 8\"><option selected>6</option><option>5</option><option>8</option></select><select class=\"ds-puzzle-tile is-blank\" aria-label=\"Blank tile\"><option value=\"\" selected></option><option>8</option><option>6</option></select></div>",
+      "css": ".ds-puzzle-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: min(100%, 306px); margin-inline: auto; } .ds-puzzle-tile { aspect-ratio: 1; min-width: 0; padding: 0.25rem 1.15rem 0.25rem 0.25rem; border: 1px solid var(--control); border-radius: var(--radius-control); background-color: #fff; background-position: right 0.38rem center; background-size: 0.62rem 0.48rem; color: var(--text); font: 500 24px/1 \"IBM Plex Mono\", monospace; font-variant-numeric: tabular-nums; text-align: center; text-align-last: center; transition: border-color 140ms ease, background-color 140ms ease; } .ds-puzzle-tile.is-blank { border-color: #86aeb6; background-color: var(--active); } .ds-puzzle-tile:hover:not(:disabled) { border-color: var(--accent); } .ds-puzzle-tile:focus-visible { border-color: var(--accent); outline: 3px solid var(--accent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Numbered Route Disclosure",
+      "kind": "custom",
+      "refersTo": "route-list",
+      "description": "Reveals the first DFS route as an ordered explanation trail.",
+      "html": "<details class=\"ds-route-details\" open><summary>Show the found route</summary><ol class=\"ds-route-list\"><li>Initial board</li><li>Move blank left</li><li>Move blank up</li><li>Goal board</li></ol></details>",
+      "css": ".ds-route-details { margin-top: 16px; } .ds-route-details summary { width: fit-content; color: var(--accent-dark); cursor: pointer; font: 500 14px/1.5 \"IBM Plex Sans\", Inter, system-ui, sans-serif; text-underline-offset: 0.2em; } .ds-route-details summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; } .ds-route-list { margin: 12px 0 0; padding-left: 1.75rem; border-left: 2px solid #8ab6bf; color: var(--text); line-height: 1.8; } .ds-route-list li::marker { color: var(--accent-dark); font: 500 12px/1.5 \"IBM Plex Mono\", monospace; } .ds-route-details[open] .ds-route-list { animation: ds-route-reveal 260ms cubic-bezier(0.16, 1, 0.3, 1) both; } @keyframes ds-route-reveal { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } } @media (prefers-reduced-motion: reduce) { .ds-route-details[open] .ds-route-list { animation-duration: 0.01ms; } }"
+    },
+    {
+      "name": "Project Identity Bar",
+      "kind": "custom",
+      "refersTo": "brand-bar",
+      "description": "Pairs the 3×3 route mark with the student's assignment reference.",
+      "html": "<header class=\"ds-app-bar\"><div class=\"ds-brand\"><svg class=\"ds-mark\" viewBox=\"0 0 32 32\" aria-hidden=\"true\"><rect x=\"1\" y=\"1\" width=\"8\" height=\"8\" rx=\"1\"/><rect x=\"12\" y=\"1\" width=\"8\" height=\"8\" rx=\"1\"/><rect x=\"23\" y=\"1\" width=\"8\" height=\"8\" rx=\"1\"/><rect x=\"1\" y=\"12\" width=\"8\" height=\"8\" rx=\"1\"/><rect x=\"12\" y=\"12\" width=\"8\" height=\"8\" rx=\"1\"/><rect x=\"23\" y=\"12\" width=\"8\" height=\"8\" rx=\"1\"/><rect x=\"1\" y=\"23\" width=\"8\" height=\"8\" rx=\"1\"/><rect x=\"12\" y=\"23\" width=\"8\" height=\"8\" rx=\"1\"/><rect class=\"ds-mark-route\" x=\"23\" y=\"23\" width=\"8\" height=\"8\" rx=\"1\"/></svg><strong>8-Puzzle DFS Lab</strong></div><p class=\"ds-student\"><span class=\"ds-student-name\">Student name: <span class=\"ds-student-value\">[Your name]</span></span><span class=\"ds-student-register\">Register no. <span class=\"ds-register-number\">24BDS0200</span></span></p></header>",
+      "css": ".ds-app-bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: min(100%, 1440px); min-height: 44px; margin-inline: auto; padding-inline: 32px; background: var(--ground); color: var(--text); } .ds-brand { display: inline-flex; align-items: center; gap: 11px; font: 600 14px/1.5 \"IBM Plex Sans\", Inter, system-ui, sans-serif; } .ds-mark { width: 25px; height: 25px; flex: 0 0 auto; fill: #65777d; } .ds-mark-route { fill: var(--accent); } .ds-student { display: flex; align-items: center; justify-content: flex-end; gap: 16px; margin: 0; color: var(--muted); font: 400 12px/1.5 \"IBM Plex Sans\", Inter, system-ui, sans-serif; } .ds-student-value, .ds-register-number { margin-left: 0.25rem; color: var(--text); font-weight: 500; } .ds-register-number { font-family: \"IBM Plex Mono\", monospace; font-variant-numeric: tabular-nums; } @media (max-width: 600px) { .ds-app-bar { min-height: 48px; padding-inline: 16px; } .ds-brand { gap: 8px; font-size: 13px; } .ds-mark { width: 22px; height: 22px; } .ds-student { align-items: flex-end; flex-direction: column; gap: 2px; text-align: right; } }"
+    },
+    {
+      "name": "Workbench Sheet",
+      "kind": "card",
+      "refersTo": "workbench-sheet",
+      "description": "A white, bordered work surface inside the blue-grey page frame.",
+      "html": "<main class=\"ds-sheet\"><h1>8-Puzzle DFS Lab</h1><p>Set initial and goal boards, then run bounded DFS.</p><section><h2>Puzzle setup</h2><p>Each board uses tiles 1–8 and one blank.</p></section></main>",
+      "css": ".ds-sheet { width: min(calc(100% - 16px), 1424px); min-height: calc(100vh - 52px); margin: 0 auto 8px; padding: clamp(22px, 3vw, 40px); border: 1px solid var(--border); border-radius: var(--radius-sheet); background: var(--surface); color: var(--text); } .ds-sheet h1 { margin: 0 0 7px; font: 600 22px/1.2 \"IBM Plex Sans\", Inter, system-ui, sans-serif; letter-spacing: -0.025em; } .ds-sheet h2 { margin: 0; font: 600 16px/1.3 \"IBM Plex Sans\", Inter, system-ui, sans-serif; } .ds-sheet p { margin: 0; color: var(--muted); font: 400 14px/1.5 \"IBM Plex Sans\", Inter, system-ui, sans-serif; } @media (max-width: 600px) { .ds-sheet { width: 100%; min-height: 0; margin: 0; padding: 22px 16px 28px; border-inline: 0; border-radius: 0; } }"
+    },
+    {
+      "name": "Confirmation Dialog",
+      "kind": "custom",
+      "refersTo": "confirmation-dialog",
+      "description": "Confirms the expensive exhaustive no-solution demonstration.",
+      "html": "<dialog class=\"ds-confirmation-dialog\" open aria-labelledby=\"ds-dialog-title\"><div class=\"ds-dialog-body\"><h2 id=\"ds-dialog-title\">Confirm exhaustive demonstration</h2><p>DFS may inspect the full reachable component. This run can take several seconds.</p><div class=\"ds-dialog-actions\"><button class=\"ds-dialog-cancel\" type=\"button\">Cancel</button><button class=\"ds-dialog-confirm\" type=\"button\">Run exhaustive DFS</button></div></div></dialog>",
+      "css": ".ds-confirmation-dialog { width: min(calc(100% - 32px), 34rem); max-width: none; padding: 0; border: 1px solid var(--border); border-radius: var(--radius-sheet); background: var(--surface); color: var(--text); box-shadow: 0 14px 34px rgb(20 48 57 / 20%); } .ds-confirmation-dialog::backdrop { background: rgb(16 30 35 / 52%); } .ds-dialog-body { padding: clamp(22px, 4vw, 32px); } .ds-dialog-body h2 { margin: 0 0 12px; font: 600 22px/1.2 \"IBM Plex Sans\", Inter, system-ui, sans-serif; } .ds-dialog-body p { color: var(--muted); font: 400 14px/1.5 \"IBM Plex Sans\", Inter, system-ui, sans-serif; } .ds-dialog-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 20px; } .ds-dialog-cancel, .ds-dialog-confirm { min-height: 40px; padding: 0.55rem 0.9rem; border: 1px solid var(--accent); border-radius: var(--radius-control); font: 500 14px/1.5 \"IBM Plex Sans\", Inter, system-ui, sans-serif; } .ds-dialog-cancel { border-color: #637178; background: transparent; color: #34434a; } .ds-dialog-cancel:hover { border-color: #34434a; background: #edf2f3; color: #1d2a30; } .ds-dialog-confirm { background: var(--accent); color: #fff; } .ds-dialog-confirm:hover { border-color: var(--accent-dark); background: var(--accent-dark); color: #fff; } .ds-dialog-cancel:focus-visible, .ds-dialog-confirm:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Worked-Solution Folio",
+    "overview": "The app carries a student's worked-solution folio into a compact builder-like workspace. The pair of boards establishes the puzzle; an ordered DFS route is evidence that belongs below setup. Reading hierarchy stays quiet and ink-first, while the 3×3 tile mark and numbered route supply the visual signature.\n\nAcross the surface, a cool blue-grey frame, white working sheet, soft raised panels, and one teal route/selection accent make structure visible without decoration. IBM Plex Sans handles explanation; IBM Plex Mono is reserved for tile values and measured identifiers. The white sheet is this lab's surface treatment, not a universal container for unrelated screens. The build avoids the oversized landing-page headline, generic KPI treatment, paper texture, and decorative grid named in the direction brief.",
+    "keyCharacteristics": [
+      "A compact, task-first builder interface.",
+      "One teal accent against cool, low-chroma surfaces.",
+      "The board pair and ordered route carry the product's visual identity."
+    ],
+    "rules": [
+      {
+        "name": "The Route Accent Rule",
+        "body": "Keep teal attached to the primary action, route, selection, links, and keyboard focus; let the cool neutrals carry the rest.",
+        "section": "colors"
+      },
+      {
+        "name": "The Data Face Rule",
+        "body": "Keep IBM Plex Mono on measured values and board identifiers; all explanatory reading stays in IBM Plex Sans.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Use tonal surfaces and borders for resting content; reserve elevation for the modal confirmation state.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep teal for primary action, selected-board feedback, keyboard focus, and the numbered route.",
+      "Do reserve IBM Plex Mono for tile values, the register number, route indices, and measured search statistics.",
+      "Do preserve the visible keyboard-focus outline and reduced-motion behavior.",
+      "Do keep the white sheet and raised board panels as distinct levels of this workbench."
+    ],
+    "donts": [
+      "Don't add paper texture or a decorative grid to the current visual world.",
+      "Don't turn the puzzle setup into an oversized landing-page hero or a generic KPI dashboard.",
+      "Don't replace native selects with non-interactive tile or control lookalikes.",
+      "Don't add shadows to resting panels; the dialog is the one elevated surface."
+    ]
+  }
+}

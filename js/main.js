@@ -55,9 +55,11 @@ function createCellSelect(boardName, value, index) {
   blankOption.setAttribute('aria-label', 'Blank');
   select.append(blankOption);
   select.value = String(value);
+  select.classList.toggle('is-blank', select.value === '0');
 
   select.addEventListener('change', () => {
     boards[boardName][index] = Number(select.value);
+    select.classList.toggle('is-blank', select.value === '0');
     elements.scrambleStatus.textContent = '';
     clearResult();
     updateValidation();

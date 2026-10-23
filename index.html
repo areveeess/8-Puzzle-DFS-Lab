@@ -3,120 +3,127 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f4f5f2">
+    <meta name="theme-color" content="#eaf1f3">
     <title>8-Puzzle DFS Lab</title>
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/app.css">
     <script type="module" src="js/main.js"></script>
   </head>
   <body>
-    <main class="container app-shell py-4 py-lg-5">
-      <header class="app-header mb-4 mb-lg-5">
-        <p class="eyebrow mb-2">Artificial Intelligence · Search Lab</p>
-        <h1 class="display-5 fw-semibold mb-3">The 8-puzzle, explored with DFS</h1>
-        <p class="intro-copy mb-0">Set a starting board and a goal, then follow the route found by a deterministic depth-first search.</p>
+    <header class="app-bar" aria-label="Project identity">
+      <div class="app-brand">
+        <svg class="product-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect x="1" y="1" width="8" height="8" rx="1" />
+          <rect x="12" y="1" width="8" height="8" rx="1" />
+          <rect x="23" y="1" width="8" height="8" rx="1" />
+          <rect x="1" y="12" width="8" height="8" rx="1" />
+          <rect x="12" y="12" width="8" height="8" rx="1" />
+          <rect x="23" y="12" width="8" height="8" rx="1" />
+          <rect x="1" y="23" width="8" height="8" rx="1" />
+          <rect x="12" y="23" width="8" height="8" rx="1" />
+          <rect class="product-mark-route" x="23" y="23" width="8" height="8" rx="1" />
+        </svg>
+        <span class="brand-name">8-Puzzle DFS Lab</span>
+      </div>
+      <p class="student-reference mb-0">
+        <span class="student-name">Student name: <span class="student-name-value">[Your name]</span></span>
+        <span class="student-register">Register no. <span class="student-register-number">24BDS0200</span></span>
+      </p>
+    </header>
+
+    <main id="main-content" class="app-sheet">
+      <header class="page-heading">
+        <div>
+          <h1>8-Puzzle DFS Lab</h1>
+          <p>Set initial and goal boards, then run bounded DFS.</p>
+        </div>
       </header>
 
-      <section aria-labelledby="boards-heading" class="setup-panel mb-4">
-        <div class="section-heading mb-3">
-          <div>
-            <p class="eyebrow mb-1">01 / Puzzle setup</p>
-            <h2 id="boards-heading" class="h3 mb-0">Choose the boards</h2>
-          </div>
-          <p class="section-note mb-0">Each board must use tiles 1–8 once and one blank.</p>
+      <section aria-labelledby="boards-heading" class="workbench-section">
+        <div class="section-heading">
+          <h2 id="boards-heading">Puzzle setup</h2>
+          <p>Each board uses tiles 1–8 and one blank.</p>
         </div>
 
-        <div class="row g-3 g-lg-4">
-          <div class="col-12 col-lg-6">
-            <section class="board-panel h-100" aria-labelledby="start-heading">
-              <div class="board-panel-heading">
-                <div>
-                  <p class="eyebrow mb-1">Start</p>
-                  <h3 id="start-heading" class="h5 mb-0">Initial board</h3>
+        <div class="workspace-grid">
+          <div class="board-column">
+            <div class="board-pair">
+              <section class="board-panel" aria-labelledby="start-heading">
+                <div class="board-panel-heading">
+                  <h3 id="start-heading">Initial board</h3>
+                  <span class="board-role">Start state</span>
                 </div>
-                <span class="board-index" aria-hidden="true">A</span>
-              </div>
-              <div id="start-board" class="puzzle-grid" role="group" aria-label="Initial board"></div>
-              <p id="start-feedback" class="board-feedback mb-0" aria-live="polite"></p>
-            </section>
-          </div>
-          <div class="col-12 col-lg-6">
-            <section class="board-panel h-100" aria-labelledby="goal-heading">
-              <div class="board-panel-heading">
-                <div>
-                  <p class="eyebrow mb-1">Goal</p>
-                  <h3 id="goal-heading" class="h5 mb-0">Target board</h3>
+                <div id="start-board" class="puzzle-grid" role="group" aria-label="Initial board"></div>
+                <p id="start-feedback" class="board-feedback mb-0" aria-live="polite"></p>
+              </section>
+
+              <section class="board-panel" aria-labelledby="goal-heading">
+                <div class="board-panel-heading">
+                  <h3 id="goal-heading">Goal board</h3>
+                  <span class="board-role">Target state</span>
                 </div>
-                <span class="board-index" aria-hidden="true">B</span>
+                <div id="goal-board" class="puzzle-grid" role="group" aria-label="Goal board"></div>
+                <p id="goal-feedback" class="board-feedback mb-0" aria-live="polite"></p>
+              </section>
+            </div>
+
+            <p id="reachability-feedback" class="reachability-feedback mb-0" aria-live="polite"></p>
+            <div id="exhaustive-actions" class="exhaustive-actions" hidden>
+              <div>
+                <p class="exhaustive-title mb-1">This board cannot reach the selected goal.</p>
+                <p id="exhaustive-help" class="mb-0">You can still demonstrate a full search of its reachable component, up to 181,440 states.</p>
               </div>
-              <div id="goal-board" class="puzzle-grid" role="group" aria-label="Goal board"></div>
-              <p id="goal-feedback" class="board-feedback mb-0" aria-live="polite"></p>
+              <button id="exhaustive-button" class="btn btn-outline-secondary" type="button" aria-describedby="exhaustive-help">Demonstrate exhaustive no-solution</button>
+            </div>
+          </div>
+
+          <aside class="control-rail" aria-label="Search controls">
+            <section class="control-block scramble-controls" aria-labelledby="scramble-heading">
+              <div>
+                <h3 id="scramble-heading">Generate a solvable start</h3>
+                <p id="scramble-help" class="control-help">Shuffle moves count legal steps from the selected goal, not solution distance.</p>
+              </div>
+              <label class="form-label" for="difficulty-select">Difficulty</label>
+              <select id="difficulty-select" class="form-select" aria-describedby="scramble-help scramble-status">
+                <option value="easy">Easy · 8 shuffle moves</option>
+                <option value="medium">Medium · 24 shuffle moves</option>
+                <option value="hard">Hard · 48 shuffle moves</option>
+              </select>
+              <button id="generate-button" class="btn btn-outline-primary" type="button">Generate start</button>
+              <p id="scramble-status" class="scramble-status mb-0" role="status" aria-live="polite"></p>
             </section>
-          </div>
-        </div>
 
-        <p id="reachability-feedback" class="reachability-feedback mt-3 mb-0" aria-live="polite"></p>
-        <div id="exhaustive-actions" class="exhaustive-actions mt-3" hidden>
-          <button id="exhaustive-button" class="btn btn-outline-secondary" type="button" aria-describedby="exhaustive-help">Demonstrate exhaustive no-solution</button>
-          <p id="exhaustive-help" class="form-text mb-0">A separate DFS run can inspect the full reachable component, up to 181,440 states.</p>
-        </div>
-
-        <div class="scramble-controls mt-4">
-          <div class="scramble-copy">
-            <p class="eyebrow mb-1">Generate a start</p>
-            <h3 class="h5 mb-1">Scramble from this goal</h3>
-            <p id="scramble-help" class="form-text mb-0">Shuffle moves count legal random steps from the selected goal; they are not solution distance.</p>
-          </div>
-          <div class="scramble-actions">
-            <label class="form-label mb-1" for="difficulty-select">Difficulty</label>
-            <select id="difficulty-select" class="form-select" aria-describedby="scramble-help scramble-status">
-              <option value="easy">Easy · 8 shuffle moves</option>
-              <option value="medium">Medium · 24 shuffle moves</option>
-              <option value="hard">Hard · 48 shuffle moves</option>
-            </select>
-            <button id="generate-button" class="btn btn-outline-primary mt-2" type="button">Generate start</button>
-          </div>
-          <p id="scramble-status" class="scramble-status mb-0" role="status" aria-live="polite"></p>
-        </div>
-
-        <div class="action-row mt-4">
-          <div class="search-limit-note">
-            <span class="limit-mark" aria-hidden="true">↳</span>
-            <span>Each limit counts expanded states. A limit stop is incomplete and can be rerun from the original board.</span>
-          </div>
-          <div class="search-actions">
-            <label class="form-label mb-1" for="search-limit">Expansion limit</label>
-            <select id="search-limit" class="form-select" aria-label="DFS expansion limit">
-              <option value="2000" selected>2,000 expansions</option>
-              <option value="10000">10,000 expansions</option>
-              <option value="25000">25,000 expansions</option>
-            </select>
-            <button id="search-button" class="btn btn-primary btn-lg" type="button" disabled>Run DFS search</button>
-          </div>
+            <section class="control-block search-controls" aria-labelledby="search-heading">
+              <h3 id="search-heading">Run the search</h3>
+              <p class="control-help">The expansion limit bounds the demonstration. A limit stop is incomplete and can be rerun from the same boards.</p>
+              <label class="form-label" for="search-limit">Expansion limit</label>
+              <select id="search-limit" class="form-select" aria-label="DFS expansion limit">
+                <option value="2000" selected>2,000 expansions</option>
+                <option value="10000">10,000 expansions</option>
+                <option value="25000">25,000 expansions</option>
+              </select>
+              <button id="search-button" class="btn btn-primary" type="button" disabled>Run DFS search</button>
+            </section>
+          </aside>
         </div>
       </section>
 
       <section id="result-panel" class="result-panel" aria-labelledby="result-heading" hidden>
-        <div class="section-heading mb-3">
-          <div>
-            <p class="eyebrow mb-1">02 / Search result</p>
-            <h2 id="result-heading" class="h3 mb-0">What DFS found</h2>
-          </div>
-          <span class="result-status-mark" aria-hidden="true">●</span>
+        <div class="section-heading result-heading-row">
+          <h2 id="result-heading">Search result</h2>
+          <span class="result-context">Depth-first traversal</span>
         </div>
         <div id="result-content" role="status" aria-live="polite"></div>
       </section>
 
-      <footer class="app-footer mt-5">
-        <span>Graph search · Depth-first traversal</span>
-        <span>Routes are reported as found by DFS, not as shortest paths.</span>
+      <footer class="app-footer">
+        <p class="mb-0">A DFS route is the first route found by this search, not a shortest-path guarantee.</p>
       </footer>
     </main>
 
     <dialog id="exhaustive-dialog" class="confirmation-dialog" aria-labelledby="exhaustive-dialog-title" aria-describedby="exhaustive-dialog-copy">
       <div class="confirmation-dialog-body">
-        <p class="eyebrow mb-2">Confirm exhaustive demonstration</p>
-        <h2 id="exhaustive-dialog-title" class="h4">This can search a large component</h2>
+        <h2 id="exhaustive-dialog-title">Confirm exhaustive demonstration</h2>
         <p id="exhaustive-dialog-copy">DFS may inspect the full 181,440-state component. This run uses a 200,000-expansion ceiling and can take several seconds. It will demonstrate exhaustion; it will not find a route for these opposite-parity boards.</p>
         <div class="confirmation-actions">
           <button id="cancel-exhaustive" class="btn btn-outline-secondary" type="button">Cancel</button>
