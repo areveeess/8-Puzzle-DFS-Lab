@@ -303,7 +303,7 @@ function isValidEvent(event, expansionById) {
 }
 
 /** Validate Worker output before using any of its dynamic values in the DOM. */
-export function validateSearchResult(result, expectedRunId) {
+export function validateSearchResult(result, expectedRunId, { start = null, goal = null } = {}) {
   if (!result || typeof result !== 'object' || Array.isArray(result) || result.runId !== expectedRunId) return false;
   if (!['found', 'limit-reached', 'exhausted', 'error'].includes(result.status)) return false;
   if (result.status === 'error') return typeof result.error === 'string';
@@ -322,12 +322,62 @@ export function validateSearchResult(result, expectedRunId) {
 
   const trace = result.trace;
   if (!trace || typeof trace !== 'object' || !Array.isArray(trace.events) || trace.events.length > TRACE_EVENT_LIMIT
+    || trace.events.length === 0
     || !isSafeCount(trace.observed) || !isSafeCount(trace.stored) || !isSafeCount(trace.omitted)
     || trace.stored !== trace.events.length || trace.observed !== trace.stored + trace.omitted
     || trace.complete !== (trace.omitted === 0)) return false;
 
+  const hasContext = isExactPermutation(start) && isExactPermutation(goal);
+  const startKey = hasContext ? boardKey(start) : null;
+  const goalKey = hasContext ? boardKey(goal) : null;
   const expansionById = new Map();
-  return trace.events.every((event) => isValidEvent(event, expansionById));
+  const discovered = new Map();
+  const expanded = new Set();
+  let nextExpansionId = 0;
+
+  for (const [index, event] of trace.events.entries()) {
+    if (!isValidEvent(event, expansionById)) return false;
+
+    if (event.type === 'goal' && event.expansionId === null) {
+      if (index !== 0 || result.status !== 'found' || event.depth !== 0 || event.parentKey !== null || event.move !== null) return false;
+      if (hasContext && (startKey !== goalKey || event.stateKey !== startKey || result.moves.length !== 0)) return false;
+      discovered.set(event.stateKey, { depth: 0, parentKey: null });
+      continue;
+    }
+
+    if (event.type === 'expand') {
+      if (event.expansionId !== nextExpansionId++) return false;
+      if (index === 0) {
+        if (event.depth !== 0 || event.parentKey !== null || (hasContext && event.stateKey !== startKey)) return false;
+        discovered.set(event.stateKey, { depth: 0, parentKey: null });
+      }
+      const known = discovered.get(event.stateKey);
+      if (!known || known.depth !== event.depth || known.parentKey !== event.parentKey || expanded.has(event.stateKey)) return false;
+      if (hasContext && event.stateKey === goalKey) return false;
+      expanded.add(event.stateKey);
+      continue;
+    }
+
+    const known = discovered.get(event.stateKey);
+    if (event.type === 'skip') {
+      if (!known) return false;
+      continue;
+    }
+    if (known) return false;
+    if (event.type === 'goal' && hasContext && event.stateKey !== goalKey) return false;
+    discovered.set(event.stateKey, { depth: event.depth, parentKey: event.parentKey });
+  }
+
+  if (hasContext && result.status === 'found') {
+    if (trace.complete && !discovered.has(goalKey)) return false;
+    try {
+      const route = createRouteStates(start, result.moves);
+      if (boardKey(route[route.length - 1]) !== goalKey) return false;
+    } catch {
+      return false;
+    }
+  }
+  return true;
 }
 
 /** Validate and execute one structured request at the Worker boundary. */

@@ -381,7 +381,7 @@ function showTraceLoading() {
 }
 
 function showTraceResult(result, start, goal, expectedRunId) {
-  if (!validateSearchResult(result, expectedRunId)) {
+  if (!validateSearchResult(result, expectedRunId, { start, goal })) {
     showTraceError();
     return false;
   }
@@ -512,7 +512,7 @@ function runSearch({ limit = Number(elements.searchLimit.value), allowUnreachabl
     activeWorker = null;
     currentRunId = null;
     worker.terminate();
-    const validResult = validateSearchResult(event.data, runId);
+    const validResult = validateSearchResult(event.data, runId, { start: runStart, goal: runGoal });
     if (!validResult) {
       showTraceError();
       showSearchResult({ status: 'error', error: 'The Worker returned an invalid search result.' });
