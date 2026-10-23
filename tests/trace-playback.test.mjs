@@ -13,10 +13,179 @@ import {
   MAX_PREVIEW_ROWS,
   reconstructTracePreview,
 } from '../js/trace-model.mjs';
+import { createPlaybackController } from '../js/playback.mjs';
 
 const goal = [1, 2, 3, 4, 0, 5, 7, 8, 6];
 const oneMoveStart = [1, 2, 3, 4, 8, 5, 7, 0, 6];
 const oppositeParity = [2, 1, 3, 4, 5, 6, 7, 8, 0];
+
+function createPlaybackHarness(options = {}) {
+  let time = 0;
+  let nextId = 0;
+  const pending = new Map();
+  const scheduled = [];
+  const controller = createPlaybackController({
+    traceLength: 3,
+    routeLength: 2,
+    now: () => time,
+    schedule: (callback, delay) => {
+      const id = ++nextId;
+      pending.set(id, { callback, delay });
+      scheduled.push(id);
+      return id;
+    },
+    cancel: (id) => pending.delete(id),
+    ...options,
+  });
+
+  return {
+    controller,
+    pending,
+    scheduled,
+    setTime(value) { time = value; },
+    fireNext() {
+      const [id, entry] = pending.entries().next().value ?? [];
+      assert.ok(entry, 'expected one scheduled playback callback');
+      pending.delete(id);
+      time += entry.delay;
+      entry.callback();
+    },
+    fire(id, at = time) {
+      const entry = pending.get(id);
+      assert.ok(entry, `expected callback ${id} to remain pending`);
+      pending.delete(id);
+      time = at;
+      entry.callback();
+    },
+    get time() { return time; },
+  };
+}
+
+test('playback actions clamp at sequence boundaries and preserve terminal selection', () => {
+  const harness = createPlaybackHarness();
+  const { controller } = harness;
+
+  assert.equal(controller.getState().traceCursor, 0);
+  assert.equal(controller.canStep('trace', -1), false);
+  assert.equal(controller.step('trace', -1), 0);
+  assert.equal(controller.step('trace', 1), 1);
+  assert.equal(controller.step('trace', 99), 2);
+  assert.equal(controller.canStep('trace', 1), false);
+  assert.equal(controller.play('trace'), false);
+  assert.equal(controller.getState().traceCursor, 2);
+  assert.equal(controller.getState().playing, false);
+
+  assert.equal(controller.step('trace', -1), 1);
+  assert.equal(controller.setSpeed(2), true);
+  assert.equal(controller.getState().speed, 2);
+  assert.equal(controller.play('trace'), true);
+  assert.equal(harness.pending.size, 1);
+  assert.equal(controller.pause(), true);
+  assert.equal(harness.pending.size, 0);
+  assert.equal(controller.play('trace'), true);
+  assert.equal(controller.getState().playing, true);
+  assert.equal(controller.pause(), true);
+
+  assert.equal(controller.reset('trace'), true);
+  assert.equal(controller.getState().traceCursor, 0);
+  assert.equal(controller.getState().routeCursor, 0);
+  assert.equal(controller.getState().playbackMs, 0);
+  assert.equal(controller.getState().speed, 2);
+});
+
+test('zero-move and one-move routes expose the right board positions and step boundaries', () => {
+  const zeroMove = createPlaybackHarness({ routeLength: 1 }).controller;
+  assert.equal(zeroMove.getState().routeCursor, 0);
+  assert.equal(zeroMove.canStep('route', -1), false);
+  assert.equal(zeroMove.canStep('route', 1), false);
+  assert.equal(zeroMove.play('route'), false);
+
+  const oneMove = createPlaybackHarness({ routeLength: 2 }).controller;
+  assert.equal(oneMove.canStep('route', -1), false);
+  assert.equal(oneMove.canStep('route', 1), true);
+  oneMove.step('route', 1);
+  assert.equal(oneMove.getState().routeCursor, 1);
+  assert.equal(oneMove.canStep('route', 1), false);
+  assert.equal(oneMove.getState().routeLength, 2);
+});
+
+test('trace and route cursors stay independent with at most one scheduled callback', () => {
+  const harness = createPlaybackHarness({ routeLength: 3 });
+  const { controller } = harness;
+
+  controller.step('trace', 1);
+  controller.step('route', 1);
+  assert.equal(controller.getState().traceCursor, 1);
+  assert.equal(controller.getState().routeCursor, 1);
+  controller.play('trace');
+  assert.equal(harness.pending.size, 1);
+  controller.play('route');
+  assert.equal(controller.getState().traceCursor, 1);
+  assert.equal(controller.getState().routeCursor, 1);
+  assert.equal(controller.getState().activeChannel, 'route');
+  assert.equal(harness.pending.size, 1);
+  harness.fireNext();
+  assert.equal(controller.getState().routeCursor, 2);
+  assert.equal(controller.getState().traceCursor, 1);
+  assert.equal(controller.getState().playing, false);
+  assert.equal(harness.pending.size, 0);
+});
+
+test('playback time counts monotonic play segments and leaves solver results unchanged', () => {
+  const searchResult = Object.freeze({
+    elapsedMs: 12.3,
+    generated: 4,
+    expanded: 1,
+    maxDepth: 1,
+    pathCost: 1,
+    moves: Object.freeze(['Up']),
+  });
+  const harness = createPlaybackHarness({ searchResult });
+  const { controller } = harness;
+  controller.play('trace');
+  harness.setTime(325);
+  assert.equal(controller.getState().playbackMs, 325);
+  controller.pause();
+  harness.setTime(900);
+  assert.equal(controller.getState().playbackMs, 325);
+  controller.play('trace');
+  harness.setTime(1_075);
+  assert.equal(controller.getState().playbackMs, 500);
+  controller.pause();
+  assert.deepEqual(searchResult, {
+    elapsedMs: 12.3,
+    generated: 4,
+    expanded: 1,
+    maxDepth: 1,
+    pathCost: 1,
+    moves: ['Up'],
+  });
+});
+
+test('reset and run invalidation cancel callbacks and reject stale scheduled work', () => {
+  const harness = createPlaybackHarness();
+  const { controller } = harness;
+
+  controller.play('trace');
+  const staleId = harness.scheduled.at(-1);
+  const stale = harness.pending.get(staleId).callback;
+  controller.reset('trace');
+  assert.equal(harness.pending.size, 0);
+  controller.configure({ traceLength: 2, routeLength: 2 });
+  stale();
+  assert.equal(controller.getState().traceCursor, 0);
+  assert.equal(controller.getState().playing, false);
+
+  controller.play('trace');
+  const pendingId = harness.scheduled.at(-1);
+  const pendingCallback = harness.pending.get(pendingId).callback;
+  controller.invalidate();
+  assert.equal(harness.pending.size, 0);
+  harness.setTime(5_000);
+  pendingCallback();
+  assert.equal(controller.getState().traceCursor, 0);
+  assert.equal(controller.getState().playbackMs, 0);
+});
 
 test('a Worker result preserves solver fields and adds a bounded trace from the same run', () => {
   const result = handleSearchRequest({ runId: 'one-move', start: oneMoveStart, goal, limit: 2_000 });
