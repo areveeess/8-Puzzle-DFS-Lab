@@ -2,7 +2,7 @@ import { analyzeBoardPair, createScrambledBoard } from './solver.mjs';
 
 const DEFAULT_START = [1, 2, 3, 4, 8, 5, 7, 0, 6];
 const DEFAULT_GOAL = [1, 2, 3, 4, 0, 5, 7, 8, 6];
-const EXPANSION_LIMIT = 2_000;
+const EXHAUSTIVE_LIMIT = 200_000;
 
 const boards = {
   start: [...DEFAULT_START],
@@ -18,7 +18,13 @@ const elements = {
   difficultySelect: document.querySelector('#difficulty-select'),
   generateButton: document.querySelector('#generate-button'),
   scrambleStatus: document.querySelector('#scramble-status'),
+  searchLimit: document.querySelector('#search-limit'),
   searchButton: document.querySelector('#search-button'),
+  exhaustiveActions: document.querySelector('#exhaustive-actions'),
+  exhaustiveButton: document.querySelector('#exhaustive-button'),
+  exhaustiveDialog: document.querySelector('#exhaustive-dialog'),
+  cancelExhaustive: document.querySelector('#cancel-exhaustive'),
+  confirmExhaustive: document.querySelector('#confirm-exhaustive'),
   resultPanel: document.querySelector('#result-panel'),
   resultContent: document.querySelector('#result-content'),
 };
@@ -118,6 +124,8 @@ function updateValidation() {
 
   elements.searchButton.disabled = analysis.reachable !== true || Boolean(activeWorker);
   elements.generateButton.disabled = !analysis.goalValid;
+  elements.exhaustiveActions.hidden = !(analysis.startValid && analysis.goalValid && analysis.reachable === false);
+  elements.exhaustiveButton.disabled = !analysis.startValid || !analysis.goalValid || analysis.reachable !== false || Boolean(activeWorker);
 }
 
 function clearResult() {
@@ -129,6 +137,7 @@ function clearResult() {
   elements.resultContent.replaceChildren();
   elements.resultPanel.hidden = true;
   elements.searchButton.textContent = 'Run DFS search';
+  if (elements.exhaustiveDialog.open) elements.exhaustiveDialog.close();
 }
 
 function addText(parent, tagName, text, className = '') {
@@ -139,6 +148,46 @@ function addText(parent, tagName, text, className = '') {
   return element;
 }
 
+function formatCount(value) {
+  return Number.isFinite(value) ? value.toLocaleString() : 'Unavailable';
+}
+
+function formatElapsedTime(value) {
+  return Number.isFinite(value) ? `${value.toFixed(1)} ms` : 'Unavailable';
+}
+
+function formatApproximateMemory(value) {
+  if (!Number.isFinite(value) || value < 0) return 'Unavailable';
+  if (value < 1_024) return `about ${Math.round(value)} bytes`;
+  return `about ${(value / 1_024).toFixed(1)} KiB`;
+}
+
+function addMetric(list, label, value, definition) {
+  addText(list, 'dt', label);
+  const description = document.createElement('dd');
+  addText(description, 'span', value);
+  addText(description, 'p', definition, 'metric-definition mb-0');
+  list.append(description);
+}
+
+function addSearchStatistics(content, result) {
+  const details = document.createElement('details');
+  details.className = 'result-details statistics-details';
+  addText(details, 'summary', 'Search statistics and definitions');
+  const list = document.createElement('dl');
+  list.className = 'statistics-grid';
+
+  addMetric(list, 'Generated', formatCount(result.generated), 'The initial board plus every unique board when DFS discovers it for the first time.');
+  addMetric(list, 'Expanded', formatCount(result.expanded), 'Non-goal boards whose legal successors were enumerated.');
+  addMetric(list, 'Maximum depth', formatCount(result.maxDepth), 'The greatest depth among discovered boards, including boards still waiting on the frontier.');
+  addMetric(list, 'Elapsed search time', formatElapsedTime(result.elapsedMs), 'Solver work after the Worker receives the request; excludes Worker startup and message transfer.');
+  addMetric(list, 'Path cost', result.status === 'found' ? `${formatCount(result.pathCost)} moves` : 'Not applicable', 'The number of moves in the returned DFS route. No path cost is reported when no route is returned.');
+  addMetric(list, 'Approximate memory', formatApproximateMemory(result.approximateMemoryBytes), 'Estimated as 64 bytes per generated board plus 8 bytes per frontier entry. This excludes JavaScript object/container engine overhead and temporary arrays.');
+
+  details.append(list);
+  content.append(details);
+}
+
 function showSearchResult(result) {
   const content = elements.resultContent;
   content.replaceChildren();
@@ -146,7 +195,7 @@ function showSearchResult(result) {
   if (result.status === 'found') {
     addText(content, 'p', 'DFS route found', 'result-outcome');
     addText(content, 'p', `Move count: ${result.moveCount}`, 'result-move-count');
-    addText(content, 'p', 'This route is the one DFS found; DFS does not guarantee a shortest route.', 'result-explanation');
+    addText(content, 'p', 'This is the route DFS found. DFS does not guarantee a shortest route.', 'result-explanation');
 
     const routeDetails = document.createElement('details');
     routeDetails.className = 'result-details';
@@ -159,22 +208,27 @@ function showSearchResult(result) {
     routeDetails.append(moveList);
     content.append(routeDetails);
   } else if (result.status === 'exhausted') {
-    addText(content, 'p', 'Search exhausted — no solution found.', 'result-outcome');
+    addText(content, 'p', 'Exhausted — no solution', 'result-outcome');
     addText(content, 'p', 'DFS checked every state reachable from this start within its search component.', 'result-explanation');
   } else if (result.status === 'limit-reached') {
     addText(content, 'p', 'Limit reached — this search is incomplete.', 'result-outcome');
-    addText(content, 'p', `DFS expanded ${result.expanded.toLocaleString()} states and generated ${result.generated.toLocaleString()} states before stopping.`, 'result-explanation');
+    addText(content, 'p', `DFS expanded ${formatCount(result.expanded)} states and generated ${formatCount(result.generated)} states before stopping. You can choose a higher limit and rerun from the beginning.`, 'result-explanation');
   } else {
     addText(content, 'p', 'Search could not start.', 'result-outcome');
     addText(content, 'p', result.error ?? 'The worker returned an unexpected result.', 'result-explanation');
   }
 
+  if (result.status !== 'error') addSearchStatistics(content, result);
+
   elements.resultPanel.hidden = false;
 }
 
-function runSearch() {
+function runSearch({ limit = Number(elements.searchLimit.value), allowUnreachable = false } = {}) {
   const analysis = analyzeBoardPair(boards.start, boards.goal);
-  if (analysis.reachable !== true || activeWorker) return;
+  const isValidPair = analysis.startValid && analysis.goalValid;
+  if (!isValidPair || activeWorker) return;
+  if (!allowUnreachable && analysis.reachable !== true) return;
+  if (allowUnreachable && (analysis.reachable !== false || limit !== EXHAUSTIVE_LIMIT)) return;
 
   clearResult();
   const runId = `dfs-${Date.now()}-${++runSequence}`;
@@ -207,7 +261,20 @@ function runSearch() {
     updateValidation();
   });
 
-  worker.postMessage({ runId, start: [...boards.start], goal: [...boards.goal], limit: EXPANSION_LIMIT });
+  worker.postMessage({ runId, start: [...boards.start], goal: [...boards.goal], limit });
+}
+
+function openExhaustiveConfirmation() {
+  const analysis = analyzeBoardPair(boards.start, boards.goal);
+  if (!analysis.startValid || !analysis.goalValid || analysis.reachable !== false || activeWorker) return;
+  elements.exhaustiveDialog.showModal();
+}
+
+function confirmExhaustiveSearch() {
+  const analysis = analyzeBoardPair(boards.start, boards.goal);
+  elements.exhaustiveDialog.close();
+  if (!analysis.startValid || !analysis.goalValid || analysis.reachable !== false) return;
+  runSearch({ limit: EXHAUSTIVE_LIMIT, allowUnreachable: true });
 }
 
 function generateStart() {
@@ -228,4 +295,8 @@ renderBoard('start', elements.startBoard);
 renderBoard('goal', elements.goalBoard);
 elements.searchButton.addEventListener('click', runSearch);
 elements.generateButton.addEventListener('click', generateStart);
+elements.searchLimit.addEventListener('change', clearResult);
+elements.exhaustiveButton.addEventListener('click', openExhaustiveConfirmation);
+elements.cancelExhaustive.addEventListener('click', () => elements.exhaustiveDialog.close());
+elements.confirmExhaustive.addEventListener('click', confirmExhaustiveSearch);
 updateValidation();

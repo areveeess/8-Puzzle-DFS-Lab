@@ -56,6 +56,10 @@
         </div>
 
         <p id="reachability-feedback" class="reachability-feedback mt-3 mb-0" aria-live="polite"></p>
+        <div id="exhaustive-actions" class="exhaustive-actions mt-3" hidden>
+          <button id="exhaustive-button" class="btn btn-outline-secondary" type="button" aria-describedby="exhaustive-help">Demonstrate exhaustive no-solution</button>
+          <p id="exhaustive-help" class="form-text mb-0">A separate DFS run can inspect the full reachable component, up to 181,440 states.</p>
+        </div>
 
         <div class="scramble-controls mt-4">
           <div class="scramble-copy">
@@ -78,9 +82,17 @@
         <div class="action-row mt-4">
           <div class="search-limit-note">
             <span class="limit-mark" aria-hidden="true">↳</span>
-            <span>Search is capped at <strong>2,000 state expansions</strong> for this first demonstration.</span>
+            <span>Each limit counts expanded states. A limit stop is incomplete and can be rerun from the original board.</span>
           </div>
-          <button id="search-button" class="btn btn-primary btn-lg" type="button" disabled>Run DFS search</button>
+          <div class="search-actions">
+            <label class="form-label mb-1" for="search-limit">Expansion limit</label>
+            <select id="search-limit" class="form-select" aria-label="DFS expansion limit">
+              <option value="2000" selected>2,000 expansions</option>
+              <option value="10000">10,000 expansions</option>
+              <option value="25000">25,000 expansions</option>
+            </select>
+            <button id="search-button" class="btn btn-primary btn-lg" type="button" disabled>Run DFS search</button>
+          </div>
         </div>
       </section>
 
@@ -100,5 +112,17 @@
         <span>Routes are reported as found by DFS, not as shortest paths.</span>
       </footer>
     </main>
+
+    <dialog id="exhaustive-dialog" class="confirmation-dialog" aria-labelledby="exhaustive-dialog-title" aria-describedby="exhaustive-dialog-copy">
+      <div class="confirmation-dialog-body">
+        <p class="eyebrow mb-2">Confirm exhaustive demonstration</p>
+        <h2 id="exhaustive-dialog-title" class="h4">This can search a large component</h2>
+        <p id="exhaustive-dialog-copy">DFS may inspect the full 181,440-state component. This run uses a 200,000-expansion ceiling and can take several seconds. It will demonstrate exhaustion; it will not find a route for these opposite-parity boards.</p>
+        <div class="confirmation-actions">
+          <button id="cancel-exhaustive" class="btn btn-outline-secondary" type="button">Cancel</button>
+          <button id="confirm-exhaustive" class="btn btn-primary" type="button">Run exhaustive DFS</button>
+        </div>
+      </div>
+    </dialog>
   </body>
 </html>

@@ -8,6 +8,7 @@ const MOVE_DIRECTIONS = [
 ];
 const SCRAMBLE_STEPS = Object.freeze({ easy: 8, medium: 24, hard: 48 });
 const INVERSE_MOVE = Object.freeze({ Up: 'Down', Right: 'Left', Down: 'Up', Left: 'Right' });
+const WORKER_LIMITS = new Set([2_000, 10_000, 25_000, 200_000]);
 
 const boardKey = (board) => board.join('');
 
@@ -205,8 +206,8 @@ export function handleSearchRequest(request) {
   if (!isExactPermutation(request.start) || !isExactPermutation(request.goal)) {
     return { runId, status: 'error', error: 'Start and goal must each contain the tiles 0 through 8 exactly once.' };
   }
-  if (!Number.isSafeInteger(request.limit) || request.limit < 1 || request.limit > 2_000) {
-    return { runId, status: 'error', error: 'The initial search limit must be between 1 and 2,000.' };
+  if (!WORKER_LIMITS.has(request.limit)) {
+    return { runId, status: 'error', error: 'Choose a supported finite expansion limit.' };
   }
 
   try {
