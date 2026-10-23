@@ -4,6 +4,7 @@ import {
   createScrambledBoard,
   validateSearchResult,
 } from './solver.mjs';
+import { buildTraceInspectorModel } from './trace-model.mjs';
 
 const DEFAULT_START = [1, 2, 3, 4, 8, 5, 7, 0, 6];
 const DEFAULT_GOAL = [1, 2, 3, 4, 0, 5, 7, 8, 6];
@@ -44,6 +45,7 @@ let traceResult = null;
 let traceStartBoard = null;
 let traceGoalBoard = null;
 let traceCursor = 0;
+let selectedInspectorStateKey = null;
 let routeStates = [];
 let routeCursor = 0;
 
@@ -154,6 +156,7 @@ function resetTracePanel() {
   traceStartBoard = null;
   traceGoalBoard = null;
   traceCursor = 0;
+  selectedInspectorStateKey = null;
   routeStates = [];
   routeCursor = 0;
   elements.traceStatus.textContent = '';
@@ -233,14 +236,13 @@ function eventExplanation(event) {
 function updateTracePanel() {
   const { events } = traceResult.trace;
   const event = events[traceCursor];
+  const inspector = buildTraceInspectorModel(traceResult.trace, traceCursor, selectedInspectorStateKey);
+  selectedInspectorStateKey = inspector.selected?.stateKey ?? null;
   const expansion = getExpansionForEvent(event);
   const expansionBoard = expansion?.board ?? event.board;
   const expansionDepth = expansion?.depth ?? event.depth;
   const expansionSuccessors = expansion?.successors ?? [];
-  const traceCoverage = traceResult.trace.complete
-    ? `${formatCount(traceResult.trace.stored)} DFS events recorded.`
-    : `Displaying the first ${formatCount(traceResult.trace.stored)} of ${formatCount(traceResult.trace.observed)} DFS events; the trace is partial.`;
-  elements.traceStatus.textContent = `${traceCoverage} Event ${formatCount(traceCursor + 1)} of ${formatCount(events.length)}: ${eventExplanation(event)}`;
+  elements.traceStatus.textContent = `${inspector.traceNotice} Event ${formatCount(traceCursor + 1)} of ${formatCount(events.length)}: ${eventExplanation(event)}`;
   elements.traceContent.replaceChildren();
   renderTraceContext(elements.traceContent);
 
@@ -324,6 +326,56 @@ function updateTracePanel() {
   controls.append(previous, next);
   traceCard.append(controls);
   elements.traceContent.append(traceCard);
+
+  const inspectorGrid = document.createElement('div');
+  inspectorGrid.className = 'trace-inspector-grid';
+  for (const collection of [inspector.frontier, inspector.explored]) {
+    const section = document.createElement('section');
+    section.className = 'trace-preview-panel';
+    addText(section, 'h3', collection.heading);
+    addText(section, 'p', collection.ordering, 'trace-preview-ordering');
+    addText(section, 'p', collection.rangeLabel, 'trace-preview-range');
+    if (collection.rows.length === 0) {
+      addText(section, 'p', 'No states in this collection at the selected event.', 'trace-empty-row');
+    } else {
+      const rows = document.createElement('ol');
+      rows.className = 'trace-preview-rows';
+      for (const row of collection.rows) {
+        const listItem = document.createElement('li');
+        const rowButton = document.createElement('button');
+        rowButton.type = 'button';
+        rowButton.id = `${collection.heading === 'Frontier preview' ? 'frontier' : 'explored'}-row-${row.stateKey}`;
+        rowButton.className = `trace-preview-row${row.stateKey === selectedInspectorStateKey ? ' is-selected' : ''}`;
+        rowButton.setAttribute('aria-pressed', String(row.stateKey === selectedInspectorStateKey));
+        rowButton.textContent = `State ${row.stateKey} · depth ${formatCount(row.depth)} · parent ${row.parentKey ?? 'start state'}`;
+        rowButton.addEventListener('click', () => {
+          selectedInspectorStateKey = row.stateKey;
+          updateTracePanel();
+          document.querySelector(`#${rowButton.id}`)?.focus({ preventScroll: true });
+        });
+        listItem.append(rowButton);
+        rows.append(listItem);
+      }
+      section.append(rows);
+    }
+    inspectorGrid.append(section);
+  }
+  elements.traceContent.append(inspectorGrid);
+
+  const selectedDetails = document.createElement('section');
+  selectedDetails.className = 'trace-selected-state';
+  addText(selectedDetails, 'h3', 'Selected state details');
+  if (inspector.selected) {
+    renderBoardSnapshot(selectedDetails, inspector.selected.board, `Selected ${inspector.selected.collection} state ${inspector.selected.stateKey}`);
+    const metadata = document.createElement('div');
+    metadata.className = 'trace-selected-metadata';
+    addText(metadata, 'p', `Depth ${formatCount(inspector.selected.depth)}`, 'trace-state-meta');
+    addText(metadata, 'p', `Parent state: ${inspector.selected.parentKey ?? 'Start state'}`, 'trace-state-meta');
+    selectedDetails.append(metadata);
+  } else {
+    addText(selectedDetails, 'p', 'Select a state from either preview to inspect its board, depth, and parent.', 'trace-empty-row');
+  }
+  elements.traceContent.append(selectedDetails);
 
   const routeSection = document.createElement('section');
   routeSection.className = 'route-playback';
