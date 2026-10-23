@@ -1152,49 +1152,6 @@ p {
   gap: 8px;
 }
 
-/* Demo Guide Timeline */
-.demo-timeline {
-  display: grid;
-  gap: 14px;
-}
-
-.demo-step {
-  display: grid;
-  grid-template-columns: 110px 1fr;
-  gap: 16px;
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  background: var(--raised);
-  align-items: baseline;
-}
-
-.demo-time {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: var(--radius-control);
-  background: var(--active);
-  color: var(--accent-dark);
-  font-family: "IBM Plex Mono", monospace; /* taste-skill-ignore: timeline minute timestamps */
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.demo-step-body h3 {
-  margin: 0 0 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.demo-step-body p {
-  margin: 0;
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.5;
-}
-
 @media (max-width: 980px) {
   .workspace-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -1230,11 +1187,6 @@ p {
   .nav-pill {
     width: 100%;
     justify-content: center;
-  }
-
-  .demo-step {
-    grid-template-columns: 1fr;
-    gap: 8px;
   }
 
   .app-brand {

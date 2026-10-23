@@ -43,7 +43,6 @@
         <li><a href="#problem-formulation" class="nav-pill">8-Puzzle Formulation</a></li>
         <li><a href="#algorithm-theory" class="nav-pill">DFS Algorithm Theory</a></li>
         <li><a href="#algorithm-comparison" class="nav-pill">Algorithm Comparison</a></li>
-        <li><a href="#demo-guide" class="nav-pill">Demonstration Guide</a></li>
       </ul>
     </nav>
 
@@ -302,50 +301,6 @@
             <li><strong>DFS Memory Advantage:</strong> DFS maintains low memory ($O(bm)$) even on complex puzzles, while BFS memory explodes exponentially ($O(b^d)$) with solution depth.</li>
             <li><strong>Optimality Trade-off:</strong> DFS discovered a solution of 21 moves, whereas BFS and A* found the optimal 8-move sequence. DFS prioritizes search depth over path length.</li>
           </ul>
-        </div>
-      </section>
-
-      <section id="demo-guide" class="folio-section" aria-labelledby="demo-heading">
-        <div class="section-heading">
-          <h2 id="demo-heading">Demonstration Guide & Video Script Outline</h2>
-          <span class="section-badge">3–5 Minute Evaluation Walkthrough</span>
-        </div>
-        <div class="demo-timeline">
-          <div class="demo-step">
-            <span class="demo-time">0:00 – 0:45</span>
-            <div class="demo-step-body">
-              <h3>Introduction & Student Credentials</h3>
-              <p>State your name (<strong>Raj Vardhan Singh</strong>), register number (<strong>24BDS0200</strong>), course (<strong>Artificial Intelligence</strong>), and assignment title. Introduce the 8-puzzle state-space model, explaining the 9! = 362,880 permutation space and the 181,440 reachable parity component.</p>
-            </div>
-          </div>
-          <div class="demo-step">
-            <span class="demo-time">0:45 – 1:30</span>
-            <div class="demo-step-body">
-              <h3>Solvability Parity & Board Configuration</h3>
-              <p>Demonstrate puzzle input methods: generate solvable puzzles using Easy/Medium/Hard legal walk shuffles, and demonstrate how opposite-parity boards are detected immediately to prevent fruitless search.</p>
-            </div>
-          </div>
-          <div class="demo-step">
-            <span class="demo-time">1:30 – 2:30</span>
-            <div class="demo-step-body">
-              <h3>DFS Execution & Real-Time Traversal Trace</h3>
-              <p>Run DFS with chosen expansion limits (2,000 / 10,000 / 25,000). Show that the search runs in a background Web Worker without freezing the browser. Inspect the live Frontier stack (LIFO) and Explored set previews with depth, parent references, and event classifications (Expand, Discover, Skip, Goal).</p>
-            </div>
-          </div>
-          <div class="demo-step">
-            <span class="demo-time">2:30 – 3:30</span>
-            <div class="demo-step-body">
-              <h3>Solution Path Playback & Controls</h3>
-              <p>Showcase interactive playback controls: Play/Pause, Next/Previous step, Reset, and Speed toggle (0.5×, 1×, 2×). Emphasize that immutable Search Time is kept separate from Playback Time.</p>
-            </div>
-          </div>
-          <div class="demo-step">
-            <span class="demo-time">3:30 – 4:30</span>
-            <div class="demo-step-body">
-              <h3>Comparative Evaluation & Conclusion</h3>
-              <p>Walk through the algorithm comparison table. Discuss why DFS uses O(bm) linear memory but returns non-optimal routes, contrasting it with BFS, IDDLS, and informed A* with heuristics.</p>
-            </div>
-          </div>
         </div>
       </section>
 

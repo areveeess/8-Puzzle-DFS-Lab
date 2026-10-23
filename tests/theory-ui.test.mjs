@@ -16,14 +16,15 @@ test('homepage header includes course, title, student name, register number, and
   assert.match(html, /href="#problem-formulation"/);
   assert.match(html, /href="#algorithm-theory"/);
   assert.match(html, /href="#algorithm-comparison"/);
-  assert.match(html, /href="#demo-guide"/);
 
   // Target sections exist with corresponding IDs
   assert.match(html, /id="workbench"/);
   assert.match(html, /id="problem-formulation"/);
   assert.match(html, /id="algorithm-theory"/);
   assert.match(html, /id="algorithm-comparison"/);
-  assert.match(html, /id="demo-guide"/);
+
+  // Website does not contain video presentation mentions
+  assert.doesNotMatch(html, /video/i);
 });
 
 test('problem formulation section covers the 8-puzzle state space and reachability invariants', () => {
