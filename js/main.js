@@ -1,4 +1,4 @@
-import { analyzeBoardPair } from './solver.mjs';
+import { analyzeBoardPair, createScrambledBoard } from './solver.mjs';
 
 const DEFAULT_START = [1, 2, 3, 4, 8, 5, 7, 0, 6];
 const DEFAULT_GOAL = [1, 2, 3, 4, 0, 5, 7, 8, 6];
@@ -15,6 +15,9 @@ const elements = {
   startFeedback: document.querySelector('#start-feedback'),
   goalFeedback: document.querySelector('#goal-feedback'),
   reachabilityFeedback: document.querySelector('#reachability-feedback'),
+  difficultySelect: document.querySelector('#difficulty-select'),
+  generateButton: document.querySelector('#generate-button'),
+  scrambleStatus: document.querySelector('#scramble-status'),
   searchButton: document.querySelector('#search-button'),
   resultPanel: document.querySelector('#result-panel'),
   resultContent: document.querySelector('#result-content'),
@@ -49,6 +52,7 @@ function createCellSelect(boardName, value, index) {
 
   select.addEventListener('change', () => {
     boards[boardName][index] = Number(select.value);
+    elements.scrambleStatus.textContent = '';
     clearResult();
     updateValidation();
   });
@@ -113,6 +117,7 @@ function updateValidation() {
   }
 
   elements.searchButton.disabled = analysis.reachable !== true || Boolean(activeWorker);
+  elements.generateButton.disabled = !analysis.goalValid;
 }
 
 function clearResult() {
@@ -205,7 +210,22 @@ function runSearch() {
   worker.postMessage({ runId, start: [...boards.start], goal: [...boards.goal], limit: EXPANSION_LIMIT });
 }
 
+function generateStart() {
+  const analysis = analyzeBoardPair(boards.start, boards.goal);
+  if (!analysis.goalValid) return;
+
+  const difficulty = elements.difficultySelect.value;
+  const { board, moves } = createScrambledBoard(boards.goal, difficulty);
+  const name = difficulty[0].toUpperCase() + difficulty.slice(1);
+  boards.start = board;
+  clearResult();
+  renderBoard('start', elements.startBoard);
+  updateValidation();
+  elements.scrambleStatus.textContent = `${name} start generated with ${moves.length} legal shuffle moves from the selected goal.`;
+}
+
 renderBoard('start', elements.startBoard);
 renderBoard('goal', elements.goalBoard);
 elements.searchButton.addEventListener('click', runSearch);
+elements.generateButton.addEventListener('click', generateStart);
 updateValidation();

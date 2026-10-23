@@ -124,6 +124,36 @@ summary:focus-visible {
   align-items: flex-end;
 }
 
+.scramble-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.7fr);
+  align-items: end;
+  gap: 1rem 1.5rem;
+  border-top: 1px solid var(--bs-border-color);
+  padding-top: 1.25rem;
+}
+
+.scramble-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.5rem 0.75rem;
+}
+
+.scramble-actions .form-label {
+  grid-column: 1 / -1;
+}
+
+.scramble-actions .btn {
+  align-self: end;
+}
+
+.scramble-status {
+  grid-column: 1 / -1;
+  min-height: 1.5rem;
+  color: var(--bs-secondary-color);
+}
+
 .search-limit-note {
   display: flex;
   align-items: flex-start;
@@ -192,6 +222,23 @@ summary:focus-visible {
 
   .section-note {
     text-align: left;
+  }
+
+  .scramble-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .scramble-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .scramble-actions .form-label,
+  .scramble-status {
+    grid-column: 1;
+  }
+
+  .scramble-actions .btn {
+    width: 100%;
   }
 
   .action-row .btn {

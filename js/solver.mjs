@@ -6,6 +6,8 @@ const MOVE_DIRECTIONS = [
   { move: 'Down', row: 1, column: 0 },
   { move: 'Left', row: 0, column: -1 },
 ];
+const SCRAMBLE_STEPS = Object.freeze({ easy: 8, medium: 24, hard: 48 });
+const INVERSE_MOVE = Object.freeze({ Up: 'Down', Right: 'Left', Down: 'Up', Left: 'Right' });
 
 const boardKey = (board) => board.join('');
 
@@ -68,6 +70,42 @@ export function getSuccessors(board) {
   }
 
   return successors;
+}
+
+/** Make a goal-relative legal random walk, reporting its steps for explanation. */
+export function createScrambledBoard(goal, difficulty = 'easy', random = Math.random) {
+  if (!isExactPermutation(goal)) {
+    throw new TypeError('The selected goal must contain the tiles 0 through 8 exactly once.');
+  }
+  const steps = SCRAMBLE_STEPS[difficulty];
+  if (steps === undefined) {
+    throw new RangeError('Choose an Easy, Medium, or Hard difficulty.');
+  }
+  if (typeof random !== 'function') {
+    throw new TypeError('The random source must be a function.');
+  }
+
+  let board = [...goal];
+  let previousMove = null;
+  const moves = [];
+
+  for (let step = 0; step < steps; step += 1) {
+    const legal = getSuccessors(board);
+    const reverseMove = previousMove === null ? null : INVERSE_MOVE[previousMove];
+    const alternatives = legal.filter(({ move }) => move !== reverseMove);
+    const choices = alternatives.length > 0 ? alternatives : legal;
+    const randomValue = random();
+    if (!Number.isFinite(randomValue) || randomValue < 0 || randomValue >= 1) {
+      throw new RangeError('The random source must return a value from 0 (inclusive) to 1 (exclusive).');
+    }
+
+    const selected = choices[Math.floor(randomValue * choices.length)];
+    board = selected.board;
+    previousMove = selected.move;
+    moves.push(selected.move);
+  }
+
+  return { board, moves };
 }
 
 function reconstructMoves(parentByKey, goalKey) {

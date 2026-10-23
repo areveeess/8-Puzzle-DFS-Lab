@@ -57,6 +57,24 @@
 
         <p id="reachability-feedback" class="reachability-feedback mt-3 mb-0" aria-live="polite"></p>
 
+        <div class="scramble-controls mt-4">
+          <div class="scramble-copy">
+            <p class="eyebrow mb-1">Generate a start</p>
+            <h3 class="h5 mb-1">Scramble from this goal</h3>
+            <p id="scramble-help" class="form-text mb-0">Shuffle moves count legal random steps from the selected goal; they are not solution distance.</p>
+          </div>
+          <div class="scramble-actions">
+            <label class="form-label mb-1" for="difficulty-select">Difficulty</label>
+            <select id="difficulty-select" class="form-select" aria-describedby="scramble-help scramble-status">
+              <option value="easy">Easy · 8 shuffle moves</option>
+              <option value="medium">Medium · 24 shuffle moves</option>
+              <option value="hard">Hard · 48 shuffle moves</option>
+            </select>
+            <button id="generate-button" class="btn btn-outline-primary mt-2" type="button">Generate start</button>
+          </div>
+          <p id="scramble-status" class="scramble-status mb-0" role="status" aria-live="polite"></p>
+        </div>
+
         <div class="action-row mt-4">
           <div class="search-limit-note">
             <span class="limit-mark" aria-hidden="true">↳</span>
