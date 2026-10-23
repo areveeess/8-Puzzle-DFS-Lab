@@ -8,6 +8,11 @@ import {
   TRACE_EVENT_LIMIT,
   validateSearchResult,
 } from '../js/solver.mjs';
+import {
+  buildTraceInspectorModel,
+  MAX_PREVIEW_ROWS,
+  reconstructTracePreview,
+} from '../js/trace-model.mjs';
 
 const goal = [1, 2, 3, 4, 0, 5, 7, 8, 6];
 const oneMoveStart = [1, 2, 3, 4, 8, 5, 7, 0, 6];
@@ -72,6 +77,12 @@ test('malformed Worker envelopes, boards, results, and events are rejected', () 
   assert.equal(validateSearchResult({ ...valid, trace: { ...valid.trace, events: [{ ...valid.trace.events[0], board: [1, 1, 3, 4, 5, 6, 7, 8, 0] }] } }, 'valid', { start: oneMoveStart, goal }), false);
   assert.equal(validateSearchResult({ ...valid, trace: { ...valid.trace, events: [{ ...valid.trace.events[0], type: '<img src=x>' }] } }, 'valid', { start: oneMoveStart, goal }), false);
   assert.equal(validateSearchResult({ ...valid, trace: { ...valid.trace, events: [], stored: 0, observed: 0 } }, 'valid', { start: oneMoveStart, goal }), false);
+  const alteredHistory = structuredClone(valid);
+  alteredHistory.trace.history.nodes[0].stateKey = '111111111';
+  assert.equal(validateSearchResult(alteredHistory, 'valid', { start: oneMoveStart, goal }), false);
+  const alteredTotals = structuredClone(valid);
+  alteredTotals.trace.events[0].exploredTotal += 1;
+  assert.equal(validateSearchResult(alteredTotals, 'valid', { start: oneMoveStart, goal }), false);
 });
 
 test('the event cap reports a partial trace without changing exhaustive solver status or counters', () => {
@@ -89,5 +100,93 @@ test('the event cap reports a partial trace without changing exhaustive solver s
   assert.equal(result.trace.observed, result.trace.stored + result.trace.omitted);
   assert.ok(result.trace.omitted > 0);
   assert.equal(result.trace.complete, false);
+  assert.equal(buildTraceInspectorModel(result.trace, 0).traceNotice, `Displaying the first ${TRACE_EVENT_LIMIT.toLocaleString()} of ${result.trace.observed.toLocaleString()} DFS events; the trace is partial.`);
+});
+
+test('each event reconstructs exact frontier and explored collections at that moment', () => {
+  const result = handleSearchRequest({ runId: 'collection-history', start: oneMoveStart, goal, limit: 2_000 });
+  const expectedFrontiers = [[], ['123485076'], ['123485760', '123485076'], ['123405786', '123485760', '123485076']];
+  const expectedExplored = [['123485706'], ['123485706'], ['123485706'], ['123485706']];
+
+  result.trace.events.forEach((event, index) => {
+    const preview = reconstructTracePreview(result.trace, index);
+    assert.equal(event.frontierTotal, expectedFrontiers[index].length);
+    assert.equal(event.exploredTotal, expectedExplored[index].length);
+    assert.deepEqual(preview.frontier.rows.map((row) => row.stateKey), expectedFrontiers[index]);
+    assert.deepEqual(preview.explored.rows.map((row) => row.stateKey), expectedExplored[index]);
+  });
+});
+
+test('frontier promotion and explored ordering are exact across a checkpoint boundary', () => {
+  const start = [1, 2, 3, 4, 5, 6, 0, 7, 8];
+  const result = solvePuzzle(start, goal, 2_000);
+  let promotedFrontierRow = false;
+
+  for (let index = 0; index < result.trace.events.length; index += 1) {
+    const event = result.trace.events[index];
+    const preview = reconstructTracePreview(result.trace, index);
+    assert.equal(preview.frontier.total, event.frontierTotal);
+    assert.equal(preview.explored.total, event.exploredTotal);
+    assert.ok(preview.frontier.rows.length <= MAX_PREVIEW_ROWS);
+    assert.ok(preview.explored.rows.length <= MAX_PREVIEW_ROWS);
+    assert.equal(preview.frontier.from, event.frontierTotal > 0 ? 1 : 0);
+    assert.equal(preview.frontier.to, Math.min(event.frontierTotal, MAX_PREVIEW_ROWS));
+    assert.equal(preview.explored.from, event.exploredTotal > 0 ? 1 : 0);
+    assert.equal(preview.explored.to, Math.min(event.exploredTotal, MAX_PREVIEW_ROWS));
+
+    if (event.type !== 'expand' || index === 0) continue;
+    const before = reconstructTracePreview(result.trace, index - 1).frontier.rows;
+    if (before.length > 1 && before[0].stateKey === event.stateKey) {
+      assert.equal(preview.frontier.rows[0].stateKey, before[1].stateKey);
+      assert.equal(preview.explored.rows[0].stateKey, event.stateKey);
+      promotedFrontierRow = true;
+    }
+  }
+  assert.ok(result.trace.history.checkpoints.some(({ eventIndex }) => eventIndex >= 128));
+  assert.ok(promotedFrontierRow);
+});
+
+test('a trace cap preserves a separately limit-reached solver outcome', () => {
+  const completeSmall = solvePuzzle(oneMoveStart, goal, 1);
+  assert.equal(completeSmall.status, 'limit-reached');
+  assert.equal(completeSmall.trace.complete, true);
+
+  const cappedRun = solvePuzzle(oppositeParity, [1, 2, 3, 4, 5, 6, 7, 8, 0], 100_000);
+  assert.equal(cappedRun.status, 'limit-reached');
+  assert.equal(cappedRun.expanded, 100_000);
+  assert.equal(cappedRun.trace.stored, TRACE_EVENT_LIMIT);
+  assert.equal(cappedRun.trace.complete, false);
+  assert.equal(cappedRun.status, 'limit-reached');
+  assert.match(buildTraceInspectorModel(cappedRun.trace, 0).traceNotice, /trace is partial/);
+});
+
+test('inspector metadata names exact totals, visible ranges, ordering, and truncation', () => {
+  const small = handleSearchRequest({ runId: 'inspector-small', start: oneMoveStart, goal, limit: 2_000 });
+  const smallView = buildTraceInspectorModel(small.trace, small.trace.stored - 1);
+  assert.equal(smallView.frontier.heading, 'Frontier preview');
+  assert.equal(smallView.frontier.ordering, 'Next-to-pop state first.');
+  assert.equal(smallView.frontier.rangeLabel, 'Rows 1–3 of 3.');
+  assert.equal(smallView.frontier.rows[0].stateKey, goal.join(''));
+  assert.equal(smallView.explored.heading, 'Explored preview');
+  assert.equal(smallView.explored.ordering, 'Most recently expanded state first.');
+  assert.equal(smallView.explored.rows[0].stateKey, oneMoveStart.join(''));
+
+  const large = solvePuzzle([1, 2, 3, 4, 5, 6, 0, 7, 8], goal, 2_000);
+  const largeView = buildTraceInspectorModel(large.trace, large.trace.stored - 1);
+  assert.ok(largeView.explored.total > MAX_PREVIEW_ROWS);
+  assert.equal(largeView.explored.rows.length, MAX_PREVIEW_ROWS);
+  assert.equal(largeView.explored.rangeLabel, `Rows 1–50 of ${largeView.explored.total}; preview limited to 50 states.`);
+});
+
+test('selected inspector rows expose their exact board, depth, and parent', () => {
+  const result = solvePuzzle([1, 2, 3, 4, 5, 6, 0, 7, 8], goal, 2_000);
+  const preview = reconstructTracePreview(result.trace, 8);
+  const target = preview.frontier.rows[0] ?? preview.explored.rows[0];
+  const view = buildTraceInspectorModel(result.trace, 8, target.stateKey);
+
+  assert.equal(view.selected.stateKey, target.stateKey);
+  assert.deepEqual(view.selected.board, [...target.stateKey].map(Number));
+  assert.equal(view.selected.depth, target.depth);
+  assert.equal(view.selected.parentKey, target.parentKey);
 });
 
