@@ -15,28 +15,20 @@ test('README.md includes all sections mandated by the assignment specification',
   assert.match(readme, /https:\/\/areveeess\.github\.io\/8-Puzzle-DFS-Lab\/?/);
   assert.match(readme, /https:\/\/github\.com\/areveeess\/8-Puzzle-DFS-Lab/);
 
-  // Required sections from Pages 7-8 of assignment PDF
+  // Exact 9 required sections from Page 7 of assignment PDF
   assert.match(readme, /## Project Description/i);
   assert.match(readme, /## Technologies Used/i);
   assert.match(readme, /## Search Algorithms Implemented/i);
-  assert.match(readme, /## Heuristics/i);
-  assert.match(readme, /## Screenshots|## Visual Interface/i);
+  assert.match(readme, /## Heuristics Used/i);
+  assert.match(readme, /## Screenshots/i);
+  assert.match(readme, /## GitHub Pages URL/i);
   assert.match(readme, /## Student Details/i);
   assert.match(readme, /## References/i);
-  assert.match(readme, /## How to Run/i);
-  assert.match(readme, /## Demonstration Video Outline|## 3–5 Minute Demonstration Video/i);
+  assert.match(readme, /## How to Run the Project/i);
 
   // Heuristic comparisons
   assert.match(readme, /Manhattan Distance/i);
   assert.match(readme, /Misplaced Tiles/i);
-
-  // Video duration and key topics
-  assert.match(readme, /3[–-]5 minute/i);
-  assert.match(readme, /The implemented algorithm/i);
-  assert.match(readme, /Puzzle solving process/i);
-  assert.match(readme, /Comparison of algorithms/i);
-  assert.match(readme, /Heuristic functions/i);
-  assert.match(readme, /Overall project features/i);
 });
 
 test('index.html uses strict relative paths for GitHub Pages subpath compatibility', () => {
