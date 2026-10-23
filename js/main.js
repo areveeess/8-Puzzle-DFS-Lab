@@ -1,4 +1,9 @@
-import { analyzeBoardPair, createScrambledBoard } from './solver.mjs';
+import {
+  analyzeBoardPair,
+  createRouteStates,
+  createScrambledBoard,
+  validateSearchResult,
+} from './solver.mjs';
 
 const DEFAULT_START = [1, 2, 3, 4, 8, 5, 7, 0, 6];
 const DEFAULT_GOAL = [1, 2, 3, 4, 0, 5, 7, 8, 6];
@@ -27,11 +32,20 @@ const elements = {
   confirmExhaustive: document.querySelector('#confirm-exhaustive'),
   resultPanel: document.querySelector('#result-panel'),
   resultContent: document.querySelector('#result-content'),
+  traceStatus: document.querySelector('#trace-status'),
+  traceEmpty: document.querySelector('#trace-empty'),
+  traceContent: document.querySelector('#trace-content'),
 };
 
 let runSequence = 0;
 let currentRunId = null;
 let activeWorker = null;
+let traceResult = null;
+let traceStartBoard = null;
+let traceGoalBoard = null;
+let traceCursor = 0;
+let routeStates = [];
+let routeCursor = 0;
 
 function createCellSelect(boardName, value, index) {
   const select = document.createElement('select');
@@ -126,8 +140,26 @@ function updateValidation() {
 
   elements.searchButton.disabled = analysis.reachable !== true || Boolean(activeWorker);
   elements.generateButton.disabled = !analysis.goalValid;
+  elements.difficultySelect.disabled = Boolean(activeWorker);
+  elements.searchLimit.disabled = Boolean(activeWorker);
+  elements.startBoard.querySelectorAll('select').forEach((select) => { select.disabled = Boolean(activeWorker); });
+  elements.goalBoard.querySelectorAll('select').forEach((select) => { select.disabled = Boolean(activeWorker); });
+  elements.generateButton.disabled = !analysis.goalValid || Boolean(activeWorker);
   elements.exhaustiveActions.hidden = !(analysis.startValid && analysis.goalValid && analysis.reachable === false);
   elements.exhaustiveButton.disabled = !analysis.startValid || !analysis.goalValid || analysis.reachable !== false || Boolean(activeWorker);
+}
+
+function resetTracePanel() {
+  traceResult = null;
+  traceStartBoard = null;
+  traceGoalBoard = null;
+  traceCursor = 0;
+  routeStates = [];
+  routeCursor = 0;
+  elements.traceStatus.textContent = '';
+  elements.traceEmpty.hidden = false;
+  elements.traceContent.replaceChildren();
+  elements.traceContent.hidden = true;
 }
 
 function clearResult() {
@@ -138,6 +170,7 @@ function clearResult() {
   currentRunId = null;
   elements.resultContent.replaceChildren();
   elements.resultPanel.hidden = true;
+  resetTracePanel();
   elements.searchButton.textContent = 'Run DFS search';
   if (elements.exhaustiveDialog.open) elements.exhaustiveDialog.close();
 }
@@ -148,6 +181,230 @@ function addText(parent, tagName, text, className = '') {
   element.textContent = text;
   parent.append(element);
   return element;
+}
+
+function renderBoardSnapshot(parent, board, label, extraClass = '') {
+  const grid = document.createElement('div');
+  grid.className = `trace-board ${extraClass}`.trim();
+  grid.setAttribute('role', 'img');
+  grid.setAttribute('aria-label', label);
+
+  for (const tile of board) {
+    const cell = document.createElement('span');
+    cell.className = `trace-tile${tile === 0 ? ' is-blank' : ''}`;
+    cell.textContent = tile === 0 ? '' : String(tile);
+    if (tile === 0) cell.setAttribute('aria-label', 'Blank');
+    grid.append(cell);
+  }
+
+  parent.append(grid);
+  return grid;
+}
+
+function renderTraceContext(parent) {
+  const context = document.createElement('div');
+  context.className = 'trace-context-grid';
+  const initial = document.createElement('section');
+  initial.className = 'trace-context-board';
+  addText(initial, 'h3', 'Initial board');
+  renderBoardSnapshot(initial, traceStartBoard, 'Initial board');
+  context.append(initial);
+
+  const goal = document.createElement('section');
+  goal.className = 'trace-context-board';
+  addText(goal, 'h3', 'Goal board');
+  renderBoardSnapshot(goal, traceGoalBoard, 'Goal board');
+  context.append(goal);
+  parent.append(context);
+}
+
+function getExpansionForEvent(event) {
+  if (event.type === 'expand') return event;
+  return traceResult.trace.events.find((candidate) => candidate.type === 'expand' && candidate.expansionId === event.expansionId);
+}
+
+function eventExplanation(event) {
+  if (event.type === 'expand') return 'Expanded this state and checked its legal moves.';
+  if (event.type === 'discover') return 'Added this new state to the frontier.';
+  if (event.type === 'skip') return 'Skipped this state because DFS had already discovered it.';
+  return 'Goal found. This is the route returned by DFS, not a shortest-path guarantee.';
+}
+
+function updateTracePanel() {
+  const { events } = traceResult.trace;
+  const event = events[traceCursor];
+  const expansion = getExpansionForEvent(event);
+  const expansionBoard = expansion?.board ?? event.board;
+  const expansionDepth = expansion?.depth ?? event.depth;
+  const expansionSuccessors = expansion?.successors ?? [];
+  const traceCoverage = traceResult.trace.complete
+    ? `${formatCount(traceResult.trace.stored)} DFS events recorded.`
+    : `Displaying the first ${formatCount(traceResult.trace.stored)} of ${formatCount(traceResult.trace.observed)} DFS events; the trace is partial.`;
+  elements.traceStatus.textContent = `${traceCoverage} Event ${formatCount(traceCursor + 1)} of ${formatCount(events.length)}: ${eventExplanation(event)}`;
+  elements.traceContent.replaceChildren();
+  renderTraceContext(elements.traceContent);
+
+  const traceCard = document.createElement('section');
+  traceCard.className = 'trace-event-card';
+  traceCard.setAttribute('aria-labelledby', 'trace-event-heading');
+  const toolbar = document.createElement('div');
+  toolbar.className = 'trace-event-toolbar';
+  addText(toolbar, 'h3', 'Selected DFS event', 'mb-0');
+  addText(toolbar, 'span', `Event ${formatCount(traceCursor + 1)} of ${formatCount(events.length)}`, 'trace-event-index');
+  traceCard.append(toolbar);
+
+  const currentState = document.createElement('div');
+  currentState.className = 'trace-anchor-grid';
+  const expandedPanel = document.createElement('section');
+  expandedPanel.className = 'trace-anchor';
+  addText(expandedPanel, 'h4', expansion ? 'Expanded state' : 'Start already matches goal');
+  renderBoardSnapshot(expandedPanel, expansionBoard, `${expansion ? 'Expanded state' : 'Goal state'} at depth ${expansionDepth}`);
+  addText(expandedPanel, 'p', `Depth ${formatCount(expansionDepth)}`, 'trace-state-meta');
+  currentState.append(expandedPanel);
+
+  const eventPanel = document.createElement('section');
+  eventPanel.className = `trace-event-explanation is-${event.type}`;
+  addText(eventPanel, 'h4', event.type === 'expand' ? 'Expansion' : event.type === 'discover' ? 'State added' : event.type === 'skip' ? 'Previously discovered' : 'Goal discovery');
+  addText(eventPanel, 'p', eventExplanation(event), 'trace-event-copy');
+  if (event.type !== 'expand') {
+    const transition = event.move ? ` · move blank ${event.move.toLowerCase()}` : '';
+    addText(eventPanel, 'p', `State ${event.stateKey}${transition} · depth ${formatCount(event.depth)}`, 'trace-state-meta');
+  }
+  currentState.append(eventPanel);
+  traceCard.append(currentState);
+
+  const successors = document.createElement('section');
+  successors.className = 'trace-successors';
+  addText(successors, 'h4', 'Generated successors');
+  if (expansionSuccessors.length === 0) {
+    addText(successors, 'p', 'This state has no legal successors.', 'trace-empty-row');
+  } else {
+    const list = document.createElement('div');
+    list.className = 'trace-successor-list';
+    for (const successor of expansionSuccessors) {
+      const item = document.createElement('article');
+      const selected = event.type !== 'expand' && event.stateKey === successor.stateKey;
+      const edgeKind = selected ? event.type : 'successor';
+      item.className = `trace-successor is-${edgeKind}${selected ? ' is-selected' : ''}`;
+      const status = selected && event.type === 'discover' ? 'Added to frontier'
+        : selected && event.type === 'skip' ? 'Already discovered'
+          : selected && event.type === 'goal' ? 'Goal discovered' : `Blank ${successor.move.toLowerCase()}`;
+      addText(item, 'p', status, 'trace-successor-label');
+      renderBoardSnapshot(item, successor.board, `${status}: ${successor.stateKey}`);
+      list.append(item);
+    }
+    successors.append(list);
+  }
+  traceCard.append(successors);
+
+  const controls = document.createElement('div');
+  controls.className = 'trace-step-controls';
+  const previous = document.createElement('button');
+  previous.id = 'trace-previous-event';
+  previous.type = 'button';
+  previous.className = 'btn btn-outline-secondary';
+  previous.textContent = 'Previous event';
+  previous.disabled = traceCursor === 0;
+  previous.addEventListener('click', () => {
+    traceCursor = Math.max(0, traceCursor - 1);
+    updateTracePanel();
+    document.querySelector(traceCursor === 0 ? '#trace-next-event' : '#trace-previous-event')?.focus({ preventScroll: true });
+  });
+  const next = document.createElement('button');
+  next.id = 'trace-next-event';
+  next.type = 'button';
+  next.className = 'btn btn-outline-secondary';
+  next.textContent = 'Next event';
+  next.disabled = traceCursor >= events.length - 1;
+  next.addEventListener('click', () => {
+    traceCursor = Math.min(events.length - 1, traceCursor + 1);
+    updateTracePanel();
+    document.querySelector(traceCursor >= events.length - 1 ? '#trace-previous-event' : '#trace-next-event')?.focus({ preventScroll: true });
+  });
+  controls.append(previous, next);
+  traceCard.append(controls);
+  elements.traceContent.append(traceCard);
+
+  const routeSection = document.createElement('section');
+  routeSection.className = 'route-playback';
+  routeSection.setAttribute('aria-labelledby', 'route-playback-heading');
+  addText(routeSection, 'h3', 'Solution route', 'route-playback-heading').id = 'route-playback-heading';
+  addText(routeSection, 'p', 'DFS route found · this route is not presented as shortest.', 'route-status');
+  const routeState = routeStates[routeCursor];
+  renderBoardSnapshot(routeSection, routeState, `Route board ${routeCursor + 1} of ${routeStates.length}`);
+  const moveLabel = routeCursor === 0 ? 'Start board' : `After move ${routeCursor}: move the blank ${traceResult.moves[routeCursor - 1].toLowerCase()}.`;
+  addText(routeSection, 'p', moveLabel, 'route-step-label');
+  const routeControls = document.createElement('div');
+  routeControls.className = 'trace-step-controls';
+  const routePrevious = document.createElement('button');
+  routePrevious.id = 'route-previous-move';
+  routePrevious.type = 'button';
+  routePrevious.className = 'btn btn-outline-secondary';
+  routePrevious.textContent = 'Previous move';
+  routePrevious.disabled = routeCursor === 0;
+  routePrevious.addEventListener('click', () => {
+    routeCursor = Math.max(0, routeCursor - 1);
+    updateTracePanel();
+    document.querySelector(routeCursor === 0 ? '#route-next-move' : '#route-previous-move')?.focus({ preventScroll: true });
+  });
+  const routeNext = document.createElement('button');
+  routeNext.id = 'route-next-move';
+  routeNext.type = 'button';
+  routeNext.className = 'btn btn-outline-primary';
+  routeNext.textContent = 'Next move';
+  routeNext.disabled = routeCursor >= routeStates.length - 1;
+  routeNext.addEventListener('click', () => {
+    routeCursor = Math.min(routeStates.length - 1, routeCursor + 1);
+    updateTracePanel();
+    document.querySelector(routeCursor >= routeStates.length - 1 ? '#route-previous-move' : '#route-next-move')?.focus({ preventScroll: true });
+  });
+  routeControls.append(routePrevious, routeNext);
+  routeSection.append(routeControls);
+  elements.traceContent.append(routeSection);
+}
+
+function showTraceError() {
+  traceResult = null;
+  elements.traceEmpty.hidden = true;
+  elements.traceContent.hidden = false;
+  elements.traceContent.replaceChildren();
+  addText(elements.traceContent, 'p', 'The trace could not be shown. Run DFS again to create a new trace.', 'trace-error-copy');
+  elements.traceStatus.textContent = 'Trace unavailable. You can rerun DFS.';
+}
+
+function showTraceLoading() {
+  elements.traceEmpty.hidden = true;
+  elements.traceContent.hidden = false;
+  elements.traceContent.replaceChildren();
+  addText(elements.traceContent, 'p', 'Searching…', 'result-outcome');
+  elements.traceStatus.textContent = 'Searching…';
+}
+
+function showTraceResult(result, start, goal, expectedRunId) {
+  if (!validateSearchResult(result, expectedRunId)) {
+    showTraceError();
+    return false;
+  }
+  if (result.status === 'error') {
+    showTraceError();
+    return true;
+  }
+
+  traceResult = result;
+  traceStartBoard = [...start];
+  traceGoalBoard = [...goal];
+  traceCursor = 0;
+  routeCursor = 0;
+  routeStates = result.status === 'found' ? createRouteStates(start, result.moves) : [];
+  if (result.status === 'found' && JSON.stringify(routeStates.at(-1)) !== JSON.stringify(goal)) {
+    showTraceError();
+    return false;
+  }
+
+  elements.traceEmpty.hidden = true;
+  elements.traceContent.hidden = false;
+  updateTracePanel();
+  return true;
 }
 
 function formatCount(value) {
@@ -204,8 +461,11 @@ function showSearchResult(result) {
     addText(routeDetails, 'summary', 'Inspect the move sequence');
     const moveList = document.createElement('ol');
     moveList.className = 'route-list';
-    for (const [index, move] of result.moves.entries()) {
-      addText(moveList, 'li', `Move ${index + 1}: move the blank ${move.toLowerCase()}.`);
+    if (result.moves.length === 0) addText(moveList, 'li', 'No moves needed; the initial board is already the goal.');
+    else {
+      for (const [index, move] of result.moves.entries()) {
+        addText(moveList, 'li', `Move ${index + 1}: move the blank ${move.toLowerCase()}.`);
+      }
     }
     routeDetails.append(moveList);
     content.append(routeDetails);
@@ -234,6 +494,8 @@ function runSearch({ limit = Number(elements.searchLimit.value), allowUnreachabl
 
   clearResult();
   const runId = `dfs-${Date.now()}-${++runSequence}`;
+  const runStart = [...boards.start];
+  const runGoal = [...boards.goal];
   currentRunId = runId;
   const worker = new Worker(new URL('./search-worker.js', import.meta.url), { type: 'module' });
   activeWorker = worker;
@@ -242,13 +504,22 @@ function runSearch({ limit = Number(elements.searchLimit.value), allowUnreachabl
   elements.resultPanel.hidden = false;
   elements.resultContent.replaceChildren();
   addText(elements.resultContent, 'p', 'DFS is exploring the reachable states…', 'result-explanation');
+  showTraceLoading();
+  updateValidation();
 
   worker.addEventListener('message', (event) => {
-    if (event.data?.runId !== currentRunId) return;
+    if (runId !== currentRunId) return;
     activeWorker = null;
     currentRunId = null;
     worker.terminate();
-    showSearchResult(event.data);
+    const validResult = validateSearchResult(event.data, runId);
+    if (!validResult) {
+      showTraceError();
+      showSearchResult({ status: 'error', error: 'The Worker returned an invalid search result.' });
+    } else {
+      const traceShown = showTraceResult(event.data, runStart, runGoal, runId);
+      showSearchResult(traceShown ? event.data : { status: 'error', error: 'The trace could not be shown. Run DFS again to create a new trace.' });
+    }
     elements.searchButton.textContent = 'Run DFS search again';
     updateValidation();
   });
@@ -258,12 +529,13 @@ function runSearch({ limit = Number(elements.searchLimit.value), allowUnreachabl
     activeWorker = null;
     currentRunId = null;
     worker.terminate();
+    showTraceError();
     showSearchResult({ status: 'error', error: event.message });
     elements.searchButton.textContent = 'Run DFS search again';
     updateValidation();
   });
 
-  worker.postMessage({ runId, start: [...boards.start], goal: [...boards.goal], limit });
+  worker.postMessage({ runId, start: runStart, goal: runGoal, limit });
 }
 
 function openExhaustiveConfirmation() {

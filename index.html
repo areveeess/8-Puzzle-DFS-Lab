@@ -108,6 +108,18 @@
         </div>
       </section>
 
+      <section id="trace-panel" class="trace-panel" aria-labelledby="trace-heading">
+        <div class="section-heading">
+          <h2 id="trace-heading">DFS trace</h2>
+          <span id="trace-status" class="trace-status" role="status" aria-live="polite"></span>
+        </div>
+        <div id="trace-empty" class="trace-empty-state">
+          <h3>No DFS trace yet</h3>
+          <p>Run DFS to build a trace of expanded states and search events.</p>
+        </div>
+        <div id="trace-content" class="trace-content" hidden></div>
+      </section>
+
       <section id="result-panel" class="result-panel" aria-labelledby="result-heading" hidden>
         <div class="section-heading result-heading-row">
           <h2 id="result-heading">Search result</h2>

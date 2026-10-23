@@ -9,6 +9,9 @@ const MOVE_DIRECTIONS = [
 const SCRAMBLE_STEPS = Object.freeze({ easy: 8, medium: 24, hard: 48 });
 const INVERSE_MOVE = Object.freeze({ Up: 'Down', Right: 'Left', Down: 'Up', Left: 'Right' });
 const WORKER_LIMITS = new Set([2_000, 10_000, 25_000, 200_000]);
+export const TRACE_EVENT_LIMIT = 10_000;
+const VALID_MOVES = new Set(MOVE_DIRECTIONS.map(({ move }) => move));
+const VALID_EVENT_TYPES = new Set(['expand', 'discover', 'skip', 'goal']);
 
 const boardKey = (board) => board.join('');
 
@@ -122,7 +125,27 @@ function reconstructMoves(parentByKey, goalKey) {
   return moves.reverse();
 }
 
-function createResult(status, startedAt, parentByKey, frontier, expanded, generated, maxDepth, goalKey = null) {
+function createTraceCollector() {
+  const events = [];
+  let observed = 0;
+  let expansionSequence = 0;
+
+  return {
+    events,
+    nextExpansionId: () => expansionSequence++,
+    record(event) {
+      observed += 1;
+      if (events.length < TRACE_EVENT_LIMIT) events.push(event);
+    },
+    summary() {
+      const stored = events.length;
+      const omitted = observed - stored;
+      return { events, observed, stored, omitted, complete: omitted === 0 };
+    },
+  };
+}
+
+function createResult(status, startedAt, parentByKey, frontier, expanded, generated, maxDepth, goalKey = null, traceCollector) {
   const moves = status === 'found' ? reconstructMoves(parentByKey, goalKey) : null;
 
   return {
@@ -135,6 +158,7 @@ function createResult(status, startedAt, parentByKey, frontier, expanded, genera
     elapsedMs: performance.now() - startedAt,
     pathCost: moves?.length ?? null,
     approximateMemoryBytes: 64 * generated + 8 * frontier.length,
+    trace: traceCollector.summary(),
   };
 }
 
@@ -159,19 +183,21 @@ export function solvePuzzle(start, goal, limit = 2_000) {
   let generated = 1;
   let expanded = 0;
   let maxDepth = 0;
+  const trace = createTraceCollector();
 
   if (startKey === goalKey) {
-    return createResult('found', startedAt, parentByKey, frontier, expanded, generated, maxDepth, goalKey);
+    trace.record({ type: 'goal', expansionId: null, stateKey: startKey, board: [...start], depth: 0, parentKey: null, move: null });
+    return createResult('found', startedAt, parentByKey, frontier, expanded, generated, maxDepth, goalKey, trace);
   }
 
   while (frontier.length > 0) {
     if (expanded >= limit) {
-      return createResult('limit-reached', startedAt, parentByKey, frontier, expanded, generated, maxDepth);
+      return createResult('limit-reached', startedAt, parentByKey, frontier, expanded, generated, maxDepth, null, trace);
     }
 
     const currentKey = frontier.pop();
     if (currentKey === goalKey) {
-      return createResult('found', startedAt, parentByKey, frontier, expanded, generated, maxDepth, goalKey);
+      return createResult('found', startedAt, parentByKey, frontier, expanded, generated, maxDepth, goalKey, trace);
     }
 
     const currentBoard = Array.from(currentKey, Number);
@@ -180,20 +206,128 @@ export function solvePuzzle(start, goal, limit = 2_000) {
 
     // Push in reverse so Up is the next state popped from the LIFO stack.
     const successors = getSuccessors(currentBoard);
+    const expansionId = trace.nextExpansionId();
+    trace.record({
+      type: 'expand',
+      expansionId,
+      stateKey: currentKey,
+      board: currentBoard,
+      depth: currentDepth,
+      parentKey: parentByKey.get(currentKey).parentKey,
+      successors: successors.map(({ move, board }) => ({ move, stateKey: boardKey(board), board })),
+    });
+
     for (let index = successors.length - 1; index >= 0; index -= 1) {
       const { move, board } = successors[index];
       const nextKey = boardKey(board);
-      if (parentByKey.has(nextKey)) continue;
+      if (parentByKey.has(nextKey)) {
+        trace.record({
+          type: 'skip', expansionId, stateKey: nextKey, board, depth: currentDepth + 1,
+          parentKey: currentKey, move,
+        });
+        continue;
+      }
 
       const depth = currentDepth + 1;
       parentByKey.set(nextKey, { parentKey: currentKey, move, depth });
       frontier.push(nextKey);
       generated += 1;
       maxDepth = Math.max(maxDepth, depth);
+      trace.record({
+        type: nextKey === goalKey ? 'goal' : 'discover',
+        expansionId,
+        stateKey: nextKey,
+        board,
+        depth,
+        parentKey: currentKey,
+        move,
+      });
     }
   }
 
-  return createResult('exhausted', startedAt, parentByKey, frontier, expanded, generated, maxDepth);
+  return createResult('exhausted', startedAt, parentByKey, frontier, expanded, generated, maxDepth, null, trace);
+}
+
+/** Reconstruct route board positions from the original board and returned DFS moves. */
+export function createRouteStates(start, moves) {
+  if (!isExactPermutation(start) || !Array.isArray(moves) || moves.some((move) => !VALID_MOVES.has(move))) {
+    throw new TypeError('A route needs a valid start board and legal move names.');
+  }
+
+  const states = [[...start]];
+  let current = [...start];
+  for (const move of moves) {
+    const next = getSuccessors(current).find((successor) => successor.move === move);
+    if (!next) throw new TypeError(`The move ${move} is not legal for the current route board.`);
+    current = next.board;
+    states.push([...current]);
+  }
+  return states;
+}
+
+function isSafeCount(value) {
+  return Number.isSafeInteger(value) && value >= 0;
+}
+
+function isValidEvent(event, expansionById) {
+  if (!event || typeof event !== 'object' || !VALID_EVENT_TYPES.has(event.type)) return false;
+  if (!isExactPermutation(event.board) || event.stateKey !== boardKey(event.board) || !isSafeCount(event.depth)) return false;
+  if (event.parentKey !== null && (typeof event.parentKey !== 'string' || !/^[0-8]{9}$/.test(event.parentKey))) return false;
+  if (event.move !== undefined && event.move !== null && !VALID_MOVES.has(event.move)) return false;
+
+  if (event.type === 'goal' && event.expansionId === null && event.parentKey === null && event.move === null) {
+    return event.depth === 0;
+  }
+  if (event.type === 'expand') {
+    if (event.move !== undefined) return false;
+    if (!isSafeCount(event.expansionId) || expansionById.has(event.expansionId)) return false;
+    if (!Array.isArray(event.successors) || event.successors.length > 4) return false;
+    const expected = getSuccessors(event.board);
+    if (event.successors.length !== expected.length) return false;
+    for (let index = 0; index < expected.length; index += 1) {
+      const actual = event.successors[index];
+      if (!actual || actual.move !== expected[index].move || !isExactPermutation(actual.board)) return false;
+      if (actual.stateKey !== boardKey(actual.board) || actual.stateKey !== boardKey(expected[index].board)) return false;
+    }
+    expansionById.set(event.expansionId, event);
+    return true;
+  }
+
+  if (!VALID_MOVES.has(event.move) || !isSafeCount(event.expansionId) || !expansionById.has(event.expansionId) || event.successors !== undefined) return false;
+  const expansion = expansionById.get(event.expansionId);
+  return event.parentKey === expansion.stateKey
+    && event.depth === expansion.depth + 1
+    && expansion.successors.some((successor) => successor.stateKey === event.stateKey
+    && successor.move === event.move
+    && boardKey(successor.board) === event.stateKey);
+}
+
+/** Validate Worker output before using any of its dynamic values in the DOM. */
+export function validateSearchResult(result, expectedRunId) {
+  if (!result || typeof result !== 'object' || Array.isArray(result) || result.runId !== expectedRunId) return false;
+  if (!['found', 'limit-reached', 'exhausted', 'error'].includes(result.status)) return false;
+  if (result.status === 'error') return typeof result.error === 'string';
+
+  if (!isSafeCount(result.generated) || result.generated < 1
+    || !isSafeCount(result.expanded) || !isSafeCount(result.maxDepth)
+    || !Number.isFinite(result.elapsedMs) || result.elapsedMs < 0
+    || !Number.isFinite(result.approximateMemoryBytes) || result.approximateMemoryBytes < 0) return false;
+
+  if (result.status === 'found') {
+    if (!Array.isArray(result.moves) || result.moves.some((move) => !VALID_MOVES.has(move))) return false;
+    if (result.moveCount !== result.moves.length || result.pathCost !== result.moves.length) return false;
+  } else if (result.moves !== null || result.moveCount !== null || result.pathCost !== null) {
+    return false;
+  }
+
+  const trace = result.trace;
+  if (!trace || typeof trace !== 'object' || !Array.isArray(trace.events) || trace.events.length > TRACE_EVENT_LIMIT
+    || !isSafeCount(trace.observed) || !isSafeCount(trace.stored) || !isSafeCount(trace.omitted)
+    || trace.stored !== trace.events.length || trace.observed !== trace.stored + trace.omitted
+    || trace.complete !== (trace.omitted === 0)) return false;
+
+  const expansionById = new Map();
+  return trace.events.every((event) => isValidEvent(event, expansionById));
 }
 
 /** Validate and execute one structured request at the Worker boundary. */
