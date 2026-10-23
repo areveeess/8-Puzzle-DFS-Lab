@@ -1,187 +1,207 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#eaf1f3">
-    <title>8-Puzzle DFS Lab</title>
-    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/css/app.css">
-    <script type="module" src="js/main.js"></script>
-  </head>
-  <body>
-    <header class="app-bar" aria-label="Course and student identity">
-      <div class="app-brand">
-        <svg class="product-mark" viewBox="0 0 32 32" aria-hidden="true">
-          <rect x="1" y="1" width="8" height="8" rx="1" />
-          <rect x="12" y="1" width="8" height="8" rx="1" />
-          <rect x="23" y="1" width="8" height="8" rx="1" />
-          <rect x="1" y="12" width="8" height="8" rx="1" />
-          <rect x="12" y="12" width="8" height="8" rx="1" />
-          <rect x="23" y="12" width="8" height="8" rx="1" />
-          <rect x="1" y="23" width="8" height="8" rx="1" />
-          <rect x="12" y="23" width="8" height="8" rx="1" />
-          <rect class="product-mark-route" x="23" y="23" width="8" height="8" rx="1" />
-        </svg>
-        <div class="brand-titles">
-          <span class="brand-name">8-Puzzle DFS Lab</span>
-          <span class="brand-course">Course: Artificial Intelligence</span>
-        </div>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eaf1f3">
+  <title>8-Puzzle DFS Lab</title>
+  <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <script type="module" src="js/main.js"></script>
+  <script src="https://polyfill.io"></script>
+  <script id="MathJax-script" async src="https://jsdelivr.net"></script>
+</head>
+
+<body>
+  <header class="app-bar" aria-label="Course and student identity">
+    <div class="app-brand">
+      <svg class="product-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="1" y="1" width="8" height="8" rx="1" />
+        <rect x="12" y="1" width="8" height="8" rx="1" />
+        <rect x="23" y="1" width="8" height="8" rx="1" />
+        <rect x="1" y="12" width="8" height="8" rx="1" />
+        <rect x="12" y="12" width="8" height="8" rx="1" />
+        <rect x="23" y="12" width="8" height="8" rx="1" />
+        <rect x="1" y="23" width="8" height="8" rx="1" />
+        <rect x="12" y="23" width="8" height="8" rx="1" />
+        <rect class="product-mark-route" x="23" y="23" width="8" height="8" rx="1" />
+      </svg>
+      <div class="brand-titles">
+        <span class="brand-name">8-Puzzle DFS Lab</span>
+        <span class="brand-course">Course: Artificial Intelligence</span>
       </div>
-      <div class="student-meta">
-        <p class="student-reference mb-0">
-          <span class="student-assignment">Interactive 8-Puzzle Problem Solver using AI Search Algorithms</span>
-          <span class="student-name">Student: <strong class="student-name-value">Raj Vardhan Singh</strong></span>
-          <span class="student-register">Register no. <strong class="student-register-number">24BDS0200</strong></span>
-        </p>
+    </div>
+    <div class="student-meta">
+      <p class="student-reference mb-0">
+        <span class="student-assignment">Interactive 8-Puzzle Problem Solver using AI Search Algorithms</span>
+        <span class="student-name">Student: <strong class="student-name-value">Raj Vardhan Singh</strong></span>
+        <span class="student-register">Register no. <strong class="student-register-number">24BDS0200</strong></span>
+      </p>
+    </div>
+  </header>
+
+  <nav class="app-nav" aria-label="Main Navigation">
+    <ul class="nav-pills">
+      <li><a href="index.html" class="nav-pill is-active" aria-current="page">Interactive Solver</a></li>
+      <li><a href="formulation.html" class="nav-pill">Problem Formulation</a></li>
+      <li><a href="algorithm.html" class="nav-pill">Algorithm Information</a></li>
+      <li><a href="comparison.html" class="nav-pill">Comparison Page</a></li>
+    </ul>
+  </nav>
+
+  <main id="main-content" class="app-sheet">
+    <header class="page-heading">
+      <div>
+        <h1>8-Puzzle DFS Lab</h1>
+        <p>Set initial and goal boards, then run bounded DFS with trace inspection.</p>
       </div>
     </header>
 
-    <nav class="app-nav" aria-label="Main Navigation">
-      <ul class="nav-pills">
-        <li><a href="index.html" class="nav-pill is-active" aria-current="page">Interactive Solver</a></li>
-        <li><a href="formulation.html" class="nav-pill">Problem Formulation</a></li>
-        <li><a href="algorithm.html" class="nav-pill">Algorithm Information</a></li>
-        <li><a href="comparison.html" class="nav-pill">Comparison Page</a></li>
-      </ul>
-    </nav>
+    <section id="workbench" aria-labelledby="boards-heading" class="workbench-section">
+      <div class="section-heading">
+        <h2 id="boards-heading">Puzzle setup</h2>
+        <p>Each board uses tiles 1–8 and one blank.</p>
+      </div>
 
-    <main id="main-content" class="app-sheet">
-      <header class="page-heading">
-        <div>
-          <h1>8-Puzzle DFS Lab</h1>
-          <p>Set initial and goal boards, then run bounded DFS with trace inspection.</p>
-        </div>
-      </header>
-
-      <section id="workbench" aria-labelledby="boards-heading" class="workbench-section">
-        <div class="section-heading">
-          <h2 id="boards-heading">Puzzle setup</h2>
-          <p>Each board uses tiles 1–8 and one blank.</p>
-        </div>
-
-        <div class="workspace-grid">
-          <div class="board-column">
-            <div class="board-pair">
-              <section class="board-panel" aria-labelledby="start-heading">
-                <div class="board-panel-heading">
-                  <h3 id="start-heading">Initial board</h3>
-                  <span class="board-role">Start state</span>
-                </div>
-                <div id="start-board" class="puzzle-grid" role="group" aria-label="Initial board"></div>
-                <p id="start-feedback" class="board-feedback mb-0" aria-live="polite"></p>
-              </section>
-
-              <section class="board-panel" aria-labelledby="goal-heading">
-                <div class="board-panel-heading">
-                  <h3 id="goal-heading">Goal board</h3>
-                  <span class="board-role">Target state</span>
-                </div>
-                <div id="goal-board" class="puzzle-grid" role="group" aria-label="Goal board"></div>
-                <p id="goal-feedback" class="board-feedback mb-0" aria-live="polite"></p>
-              </section>
-            </div>
-
-            <p id="reachability-feedback" class="reachability-feedback mb-0" aria-live="polite"></p>
-            <div id="exhaustive-actions" class="exhaustive-actions" hidden>
-              <div>
-                <p class="exhaustive-title mb-1">This board cannot reach the selected goal.</p>
-                <p id="exhaustive-help" class="mb-0">You can still demonstrate a full search of its reachable component, up to 181,440 states.</p>
+      <div class="workspace-grid">
+        <div class="board-column">
+          <div class="board-pair">
+            <section class="board-panel" aria-labelledby="start-heading">
+              <div class="board-panel-heading">
+                <h3 id="start-heading">Initial board</h3>
+                <span class="board-role">Start state</span>
               </div>
-              <button id="exhaustive-button" class="btn btn-outline-secondary" type="button" aria-describedby="exhaustive-help">Demonstrate exhaustive no-solution</button>
-            </div>
+              <div id="start-board" class="puzzle-grid" role="group" aria-label="Initial board"></div>
+              <p id="start-feedback" class="board-feedback mb-0" aria-live="polite"></p>
+            </section>
+
+            <section class="board-panel" aria-labelledby="goal-heading">
+              <div class="board-panel-heading">
+                <h3 id="goal-heading">Goal board</h3>
+                <span class="board-role">Target state</span>
+              </div>
+              <div id="goal-board" class="puzzle-grid" role="group" aria-label="Goal board"></div>
+              <p id="goal-feedback" class="board-feedback mb-0" aria-live="polite"></p>
+            </section>
           </div>
 
-          <aside class="control-rail" aria-label="Search controls">
-            <section class="control-block scramble-controls" aria-labelledby="scramble-heading">
-              <div>
-                <h3 id="scramble-heading">Generate a solvable start</h3>
-                <p id="scramble-help" class="control-help">Shuffle moves count legal steps from the selected goal, not solution distance.</p>
-              </div>
-              <label class="form-label" for="difficulty-select">Difficulty</label>
-              <select id="difficulty-select" class="form-select" aria-describedby="scramble-help scramble-status">
-                <option value="easy">Easy · 8 shuffle moves</option>
-                <option value="medium">Medium · 24 shuffle moves</option>
-                <option value="hard">Hard · 48 shuffle moves</option>
-              </select>
-              <button id="generate-button" class="btn btn-outline-primary" type="button">Generate start</button>
-              <p id="scramble-status" class="scramble-status mb-0" role="status" aria-live="polite"></p>
-            </section>
+          <p id="reachability-feedback" class="reachability-feedback mb-0" aria-live="polite"></p>
+          <div id="exhaustive-actions" class="exhaustive-actions" hidden>
+            <div>
+              <p class="exhaustive-title mb-1">This board cannot reach the selected goal.</p>
+              <p id="exhaustive-help" class="mb-0">You can still demonstrate a full search of its reachable component,
+                up to 181,440 states.</p>
+            </div>
+            <button id="exhaustive-button" class="btn btn-outline-secondary" type="button"
+              aria-describedby="exhaustive-help">Demonstrate exhaustive no-solution</button>
+          </div>
+        </div>
 
-            <section class="control-block search-controls" aria-labelledby="search-heading">
-              <h3 id="search-heading">Run the search</h3>
-              <p class="control-help">The expansion limit bounds the demonstration. A limit stop is incomplete and can be rerun from the same boards.</p>
-              <label class="form-label" for="search-limit">Expansion limit</label>
-              <select id="search-limit" class="form-select" aria-label="DFS expansion limit">
-                <option value="2000" selected>2,000 expansions</option>
-                <option value="10000">10,000 expansions</option>
-                <option value="25000">25,000 expansions</option>
-              </select>
-              <button id="search-button" class="btn btn-primary" type="button" disabled>Run DFS search</button>
-            </section>
-          </aside>
-        </div>
-      </section>
+        <aside class="control-rail" aria-label="Search controls">
+          <section class="control-block scramble-controls" aria-labelledby="scramble-heading">
+            <div>
+              <h3 id="scramble-heading">Generate a solvable start</h3>
+              <p id="scramble-help" class="control-help">Shuffle moves count legal steps from the selected goal, not
+                solution distance.</p>
+            </div>
+            <label class="form-label" for="difficulty-select">Difficulty</label>
+            <select id="difficulty-select" class="form-select" aria-describedby="scramble-help scramble-status">
+              <option value="easy">Easy · 8 shuffle moves</option>
+              <option value="medium">Medium · 24 shuffle moves</option>
+              <option value="hard">Hard · 48 shuffle moves</option>
+            </select>
+            <button id="generate-button" class="btn btn-outline-primary" type="button">Generate start</button>
+            <p id="scramble-status" class="scramble-status mb-0" role="status" aria-live="polite"></p>
+          </section>
 
-      <section id="trace-panel" class="trace-panel" aria-labelledby="trace-heading">
-        <div class="section-heading">
-          <h2 id="trace-heading">DFS trace</h2>
-          <span id="trace-status" class="trace-status" role="status" aria-live="polite"></span>
-        </div>
-        <div id="trace-empty" class="trace-empty-state">
-          <h3>No DFS trace yet</h3>
-          <p>Run DFS to build a trace of expanded states and search events.</p>
-        </div>
-        <div id="trace-content" class="trace-content" hidden></div>
-      </section>
-
-      <section id="result-panel" class="result-panel" aria-labelledby="result-heading" hidden>
-        <div class="section-heading result-heading-row">
-          <h2 id="result-heading">Search result</h2>
-          <span class="result-context">Depth-first traversal</span>
-        </div>
-        <div id="result-content" role="status" aria-live="polite"></div>
-      </section>
-
-      <section class="folio-section" aria-labelledby="modules-heading">
-        <div class="section-heading">
-          <h2 id="modules-heading">Assignment Exploration Modules</h2>
-          <span class="section-badge">Dedicated Theory &amp; Evaluation Pages</span>
-        </div>
-        <p class="section-lead">Explore the theoretical foundations, DFS algorithm mechanics, and comprehensive multi-algorithm comparison across dedicated pages:</p>
-        <div class="theory-grid">
-          <article class="theory-card">
-            <h3>8-Puzzle Problem Formulation</h3>
-            <p>Formal AI state-space modeling, 3×3 permutation space ($9! = 362,880$), 181,440 reachable parity components, and mathematical inversion invariance proof.</p>
-            <p class="mb-0 mt-3"><a href="formulation.html" class="btn btn-outline-secondary btn-sm">Open Problem Formulation &rarr;</a></p>
-          </article>
-          <article class="theory-card">
-            <h3>Algorithm Information: DFS</h3>
-            <p>Comprehensive analysis of Algorithm 2 (DFS): LIFO stack dynamics, deterministic Up-Right-Down-Left successor generation, space $\mathcal{O}(bm)$ and time $\mathcal{O}(b^m)$ complexities, and iterative pseudocode.</p>
-            <p class="mb-0 mt-3"><a href="algorithm.html" class="btn btn-outline-secondary btn-sm">Open Algorithm Information &rarr;</a></p>
-          </article>
-          <article class="theory-card">
-            <h3>Algorithm Comparison Page</h3>
-            <p>Comparative evaluation of all six search algorithms (BFS, DFS, DLS, IDDLS, GBFS, A*) on the official Page 3 &amp; 6 benchmark puzzle instance with visual initial/goal boards.</p>
-            <p class="mb-0 mt-3"><a href="comparison.html" class="btn btn-outline-secondary btn-sm">Open Comparison &amp; Benchmark &rarr;</a></p>
-          </article>
-        </div>
-      </section>
-
-      <footer class="app-footer">
-        <p class="mb-0">A DFS route is the first route found by this search, not a shortest-path guarantee.</p>
-      </footer>
-    </main>
-
-    <dialog id="exhaustive-dialog" class="confirmation-dialog" aria-labelledby="exhaustive-dialog-title" aria-describedby="exhaustive-dialog-copy">
-      <div class="confirmation-dialog-body">
-        <h2 id="exhaustive-dialog-title">Confirm exhaustive demonstration</h2>
-        <p id="exhaustive-dialog-copy">DFS may inspect the full 181,440-state component. This run uses a 200,000-expansion ceiling and can take several seconds. It will demonstrate exhaustion; it will not find a route for these opposite-parity boards.</p>
-        <div class="confirmation-actions">
-          <button id="cancel-exhaustive" class="btn btn-outline-secondary" type="button">Cancel</button>
-          <button id="confirm-exhaustive" class="btn btn-primary" type="button">Run exhaustive DFS</button>
-        </div>
+          <section class="control-block search-controls" aria-labelledby="search-heading">
+            <h3 id="search-heading">Run the search</h3>
+            <p class="control-help">The expansion limit bounds the demonstration. A limit stop is incomplete and can be
+              rerun from the same boards.</p>
+            <label class="form-label" for="search-limit">Expansion limit</label>
+            <select id="search-limit" class="form-select" aria-label="DFS expansion limit">
+              <option value="2000" selected>2,000 expansions</option>
+              <option value="10000">10,000 expansions</option>
+              <option value="25000">25,000 expansions</option>
+            </select>
+            <button id="search-button" class="btn btn-primary" type="button" disabled>Run DFS search</button>
+          </section>
+        </aside>
       </div>
-    </dialog>
-  </body>
+    </section>
+
+    <section id="trace-panel" class="trace-panel" aria-labelledby="trace-heading">
+      <div class="section-heading">
+        <h2 id="trace-heading">DFS trace</h2>
+        <span id="trace-status" class="trace-status" role="status" aria-live="polite"></span>
+      </div>
+      <div id="trace-empty" class="trace-empty-state">
+        <h3>No DFS trace yet</h3>
+        <p>Run DFS to build a trace of expanded states and search events.</p>
+      </div>
+      <div id="trace-content" class="trace-content" hidden></div>
+    </section>
+
+    <section id="result-panel" class="result-panel" aria-labelledby="result-heading" hidden>
+      <div class="section-heading result-heading-row">
+        <h2 id="result-heading">Search result</h2>
+        <span class="result-context">Depth-first traversal</span>
+      </div>
+      <div id="result-content" role="status" aria-live="polite"></div>
+    </section>
+
+    <section class="folio-section" aria-labelledby="modules-heading">
+      <div class="section-heading">
+        <h2 id="modules-heading">Assignment Exploration Modules</h2>
+        <span class="section-badge">Dedicated Theory &amp; Evaluation Pages</span>
+      </div>
+      <p class="section-lead">Explore the theoretical foundations, DFS algorithm mechanics, and comprehensive
+        multi-algorithm comparison across dedicated pages:</p>
+      <div class="theory-grid">
+        <article class="theory-card">
+          <h3>8-Puzzle Problem Formulation</h3>
+          <p>Formal AI state-space modeling, 3×3 permutation space ($9! = 362,880$), 181,440 reachable parity
+            components, and mathematical inversion invariance proof.</p>
+          <p class="mb-0 mt-3"><a href="formulation.html" class="btn btn-outline-secondary btn-sm">Open Problem
+              Formulation &rarr;</a></p>
+        </article>
+        <article class="theory-card">
+          <h3>Algorithm Information: DFS</h3>
+          <p>Comprehensive analysis of Algorithm 2 (DFS): LIFO stack dynamics, deterministic Up-Right-Down-Left
+            successor generation, space $\mathcal{O}(bm)$ and time $\mathcal{O}(b^m)$ complexities, and iterative
+            pseudocode.</p>
+          <p class="mb-0 mt-3"><a href="algorithm.html" class="btn btn-outline-secondary btn-sm">Open Algorithm
+              Information &rarr;</a></p>
+        </article>
+        <article class="theory-card">
+          <h3>Algorithm Comparison Page</h3>
+          <p>Comparative evaluation of all six search algorithms (BFS, DFS, DLS, IDDLS, GBFS, A*) on the official Page 3
+            &amp; 6 benchmark puzzle instance with visual initial/goal boards.</p>
+          <p class="mb-0 mt-3"><a href="comparison.html" class="btn btn-outline-secondary btn-sm">Open Comparison &amp;
+              Benchmark &rarr;</a></p>
+        </article>
+      </div>
+    </section>
+
+    <footer class="app-footer">
+      <p class="mb-0">A DFS route is the first route found by this search, not a shortest-path guarantee.</p>
+    </footer>
+  </main>
+
+  <dialog id="exhaustive-dialog" class="confirmation-dialog" aria-labelledby="exhaustive-dialog-title"
+    aria-describedby="exhaustive-dialog-copy">
+    <div class="confirmation-dialog-body">
+      <h2 id="exhaustive-dialog-title">Confirm exhaustive demonstration</h2>
+      <p id="exhaustive-dialog-copy">DFS may inspect the full 181,440-state component. This run uses a 200,000-expansion
+        ceiling and can take several seconds. It will demonstrate exhaustion; it will not find a route for these
+        opposite-parity boards.</p>
+      <div class="confirmation-actions">
+        <button id="cancel-exhaustive" class="btn btn-outline-secondary" type="button">Cancel</button>
+        <button id="confirm-exhaustive" class="btn btn-primary" type="button">Run exhaustive DFS</button>
+      </div>
+    </div>
+  </dialog>
+</body>
+
 </html>
