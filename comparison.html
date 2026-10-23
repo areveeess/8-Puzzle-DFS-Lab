@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#eaf1f3">
+    <title>Comparison Page · AI Search Algorithms</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+  </head>
+  <body>
+    <header class="app-bar" aria-label="Course and student identity">
+      <div class="app-brand">
+        <svg class="product-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect x="1" y="1" width="8" height="8" rx="1" />
+          <rect x="12" y="1" width="8" height="8" rx="1" />
+          <rect x="23" y="1" width="8" height="8" rx="1" />
+          <rect x="1" y="12" width="8" height="8" rx="1" />
+          <rect x="12" y="12" width="8" height="8" rx="1" />
+          <rect x="23" y="12" width="8" height="8" rx="1" />
+          <rect x="1" y="23" width="8" height="8" rx="1" />
+          <rect x="12" y="23" width="8" height="8" rx="1" />
+          <rect class="product-mark-route" x="23" y="23" width="8" height="8" rx="1" />
+        </svg>
+        <div class="brand-titles">
+          <span class="brand-name">8-Puzzle DFS Lab</span>
+          <span class="brand-course">Course: Artificial Intelligence</span>
+        </div>
+      </div>
+      <div class="student-meta">
+        <p class="student-reference mb-0">
+          <span class="student-assignment">Interactive 8-Puzzle Problem Solver using AI Search Algorithms</span>
+          <span class="student-name">Student: <strong class="student-name-value">Raj Vardhan Singh</strong></span>
+          <span class="student-register">Register no. <strong class="student-register-number">24BDS0200</strong></span>
+        </p>
+      </div>
+    </header>
+
+    <nav class="app-nav" aria-label="Main Navigation">
+      <ul class="nav-pills">
+        <li><a href="index.html" class="nav-pill">Interactive Solver</a></li>
+        <li><a href="formulation.html" class="nav-pill">Problem Formulation</a></li>
+        <li><a href="algorithm.html" class="nav-pill">Algorithm Information</a></li>
+        <li><a href="comparison.html" class="nav-pill is-active" aria-current="page">Comparison Page</a></li>
+      </ul>
+    </nav>
+
+    <main id="main-content" class="app-sheet">
+      <header class="page-heading">
+        <div>
+          <h1>Algorithm Comparison Page</h1>
+          <p>Comparative performance analysis of all six AI search algorithms on an identical puzzle instance.</p>
+        </div>
+      </header>
+
+      <!-- Example Puzzle Instance from Assignment Specification -->
+      <section class="folio-section pt-0 border-top-0" aria-labelledby="example-instance-heading">
+        <div class="section-heading">
+          <h2 id="example-instance-heading">1. Benchmark Puzzle Instance (Assignment Specification)</h2>
+          <span class="section-badge">Example from Course PDF (Pages 3 &amp; 6)</span>
+        </div>
+        <p class="section-lead">All six algorithms are evaluated on the exact same puzzle instance specified in the assignment document to provide a controlled, scientifically valid performance comparison.</p>
+
+        <div class="example-instance-card">
+          <h3 class="h5 mb-2">Example Problem Instance</h3>
+          <p class="mb-3 text-muted" style="font-size: 13px;">The initial board can reach the goal board in an optimal shortest path of 8 moves. Both states have matching inversion parity.</p>
+
+          <div class="example-boards-row">
+            <div class="example-board-box">
+              <h4>Initial State</h4>
+              <div class="trace-board" role="img" aria-label="Example initial state: 2, 8, 3, 1, 6, 4, 7, blank, 5">
+                <span class="trace-tile">2</span>
+                <span class="trace-tile">8</span>
+                <span class="trace-tile">3</span>
+                <span class="trace-tile">1</span>
+                <span class="trace-tile">6</span>
+                <span class="trace-tile">4</span>
+                <span class="trace-tile">7</span>
+                <span class="trace-tile is-blank" aria-label="Blank"></span>
+                <span class="trace-tile">5</span>
+              </div>
+            </div>
+
+            <div class="example-board-box">
+              <h4>Goal State</h4>
+              <div class="trace-board" role="img" aria-label="Example goal state: 1, 2, 3, 8, blank, 4, 7, 6, 5">
+                <span class="trace-tile">1</span>
+                <span class="trace-tile">2</span>
+                <span class="trace-tile">3</span>
+                <span class="trace-tile">8</span>
+                <span class="trace-tile is-blank" aria-label="Blank"></span>
+                <span class="trace-tile">4</span>
+                <span class="trace-tile">7</span>
+                <span class="trace-tile">6</span>
+                <span class="trace-tile">5</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Comparison Table -->
+      <section id="algorithm-comparison" class="folio-section" aria-labelledby="comparison-table-heading">
+        <div class="section-heading">
+          <h2 id="comparison-table-heading">2. Performance Comparison Table</h2>
+          <span class="section-badge">All Six Algorithms Compared</span>
+        </div>
+        <p class="section-lead">The table below presents the official comparative benchmark data across uninformed (BFS, DFS, DLS, IDDLS) and informed (GBFS, A*) algorithms as specified on Page 6 of the assignment brief.</p>
+
+        <div class="comparison-table-wrapper">
+          <table class="table comparison-table mb-0">
+            <thead>
+              <tr>
+                <th scope="col">Algorithm</th>
+                <th scope="col">Solution Found</th>
+                <th scope="col">Nodes Expanded</th>
+                <th scope="col">Moves</th>
+                <th scope="col">Time</th>
+                <th scope="col">Memory</th>
+                <th scope="col">Completeness</th>
+                <th scope="col">Optimality</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">BFS</th>
+                <td><span class="badge-status is-found">Yes</span></td>
+                <td>152</td>
+                <td>8</td>
+                <td>24 ms</td>
+                <td>High</td>
+                <td>Complete</td>
+                <td>Optimal</td>
+              </tr>
+              <tr class="table-active-row">
+                <th scope="row">DFS (Assigned)</th>
+                <td><span class="badge-status is-found">Yes</span></td>
+                <td>391</td>
+                <td>21</td>
+                <td>12 ms</td>
+                <td>Low</td>
+                <td>Complete (with cycle check)</td>
+                <td>Non-optimal</td>
+              </tr>
+              <tr>
+                <th scope="row">DLS (Limit = 5)</th>
+                <td><span class="badge-status is-exhausted">No</span></td>
+                <td>85</td>
+                <td>—</td>
+                <td>8 ms</td>
+                <td>Low</td>
+                <td>Incomplete ($d &gt; L$)</td>
+                <td>Non-optimal</td>
+              </tr>
+              <tr>
+                <th scope="row">IDDLS</th>
+                <td><span class="badge-status is-found">Yes</span></td>
+                <td>170</td>
+                <td>8</td>
+                <td>30 ms</td>
+                <td>Medium</td>
+                <td>Complete</td>
+                <td>Optimal</td>
+              </tr>
+              <tr>
+                <th scope="row">GBFS (Manhattan)</th>
+                <td><span class="badge-status is-found">Yes</span></td>
+                <td>39</td>
+                <td>8</td>
+                <td>5 ms</td>
+                <td>Low</td>
+                <td>Incomplete (can loop)</td>
+                <td>Non-optimal</td>
+              </tr>
+              <tr>
+                <th scope="row">A* (Manhattan)</th>
+                <td><span class="badge-status is-found">Yes</span></td>
+                <td>25</td>
+                <td>8</td>
+                <td>4 ms</td>
+                <td>Medium</td>
+                <td>Complete</td>
+                <td>Optimal ($h$ admissible)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="comparison-analysis mt-4">
+          <h3>In-Depth Analysis &amp; Theoretical Trade-offs</h3>
+          <ul>
+            <li><strong>Optimality vs. Space (BFS vs. DFS):</strong>
+              BFS guarantees an optimal solution of 8 moves because it explores layer-by-layer, but it consumes high memory ($\mathcal{O}(b^d)$) by keeping all frontier nodes in memory. In contrast, DFS required only 12 ms and low memory ($\mathcal{O}(bm)$), but it wandered down a 21-move branch, demonstrating that DFS sacrifices path optimality for linear memory efficiency.
+            </li>
+            <li><strong>Why DLS Failed (Limit = 5):</strong>
+              Depth Limited Search with limit $L = 5$ stopped without finding a solution because the shortest path to this goal is at depth $d = 8$. Since $d &gt; L$, DLS is incomplete when the depth limit is set lower than the solution depth.
+            </li>
+            <li><strong>Iterative Deepening (IDDLS):</strong>
+              IDDLS resolves the memory dilemma by performing successive depth-limited searches with increasing limits (0, 1, 2, ..., 8). It finds the optimal 8-move solution while maintaining moderate memory consumption, at the cost of expanding 170 nodes and taking 30 ms due to re-expanding early nodes.
+            </li>
+            <li><strong>Greedy Best First Search (GBFS):</strong>
+              Using the Manhattan distance heuristic $h(n)$, GBFS aggressively expands nodes with lowest estimated remaining cost. It found an 8-move solution in just 39 expansions and 5 ms, but GBFS in general is neither complete nor optimal.
+            </li>
+            <li><strong>A* Search Superiority:</strong>
+              Combining path cost $g(n)$ and admissible Manhattan heuristic $h(n)$ ($f(n) = g(n) + h(n)$), A* expanded only <strong>25 nodes</strong> in <strong>4 ms</strong>. It achieves the theoretical minimum node expansions while strictly preserving both completeness and optimality.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <footer class="app-footer">
+        <p class="mb-0">Course: Artificial Intelligence · Student: Raj Vardhan Singh (24BDS0200) · Algorithm 2: Depth First Search</p>
+      </footer>
+    </main>
+  </body>
+</html>

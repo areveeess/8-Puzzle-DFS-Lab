@@ -2,67 +2,124 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const indexHtml = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const formulationHtml = readFileSync(new URL('../formulation.html', import.meta.url), 'utf8');
+const algorithmHtml = readFileSync(new URL('../algorithm.html', import.meta.url), 'utf8');
+const comparisonHtml = readFileSync(new URL('../comparison.html', import.meta.url), 'utf8');
 
-test('homepage header includes course, title, student name, register number, and navigation', () => {
+test('homepage header includes course, title, student name, register number, and multi-page navigation', () => {
   // Course and Assignment metadata
-  assert.match(html, /Artificial Intelligence/);
-  assert.match(html, /Interactive 8-Puzzle Problem Solver using AI Search Algorithms/);
-  assert.match(html, /Raj Vardhan Singh/);
-  assert.match(html, /24BDS0200/);
+  assert.match(indexHtml, /Artificial Intelligence/);
+  assert.match(indexHtml, /Interactive 8-Puzzle Problem Solver using AI Search Algorithms/);
+  assert.match(indexHtml, /Raj Vardhan Singh/);
+  assert.match(indexHtml, /24BDS0200/);
 
-  // Navigation menu with working anchor targets
-  assert.match(html, /href="#workbench"/);
-  assert.match(html, /href="#problem-formulation"/);
-  assert.match(html, /href="#algorithm-theory"/);
-  assert.match(html, /href="#algorithm-comparison"/);
+  // Multi-page navigation menu linking to dedicated pages
+  assert.match(indexHtml, /href="index\.html"/);
+  assert.match(indexHtml, /href="formulation\.html"/);
+  assert.match(indexHtml, /href="algorithm\.html"/);
+  assert.match(indexHtml, /href="comparison\.html"/);
 
-  // Target sections exist with corresponding IDs
-  assert.match(html, /id="workbench"/);
-  assert.match(html, /id="problem-formulation"/);
-  assert.match(html, /id="algorithm-theory"/);
-  assert.match(html, /id="algorithm-comparison"/);
+  // Active pill set on interactive solver
+  assert.match(indexHtml, /class="nav-pill is-active"/);
+
+  // Exploration module cards point to dedicated pages
+  assert.match(indexHtml, /Open Problem Formulation/);
+  assert.match(indexHtml, /Open Algorithm Information/);
+  assert.match(indexHtml, /Open Comparison &amp; Benchmark/);
 
   // Website does not contain video presentation mentions
-  assert.doesNotMatch(html, /video/i);
+  assert.doesNotMatch(indexHtml, /video/i);
 });
 
-test('problem formulation section covers the 8-puzzle state space and reachability invariants', () => {
+test('formulation.html covers 8-puzzle state space, reachability invariants, and inversion proof', () => {
+  // Student identity and navigation
+  assert.match(formulationHtml, /Raj Vardhan Singh/);
+  assert.match(formulationHtml, /24BDS0200/);
+  assert.match(formulationHtml, /href="formulation\.html" class="nav-pill is-active"/);
+
   // State space size and reachable component
-  assert.match(html, /362,880/);
-  assert.match(html, /181,440/);
-  assert.match(html, /inversion parity/i);
-  assert.match(html, /blank/i);
+  assert.match(formulationHtml, /362,880/);
+  assert.match(formulationHtml, /181,440/);
+  assert.match(formulationHtml, /inversion parity/i);
+  assert.match(formulationHtml, /blank/i);
+
+  // Operators and formulation elements
+  assert.match(formulationHtml, /Up/);
+  assert.match(formulationHtml, /Right/);
+  assert.match(formulationHtml, /Down/);
+  assert.match(formulationHtml, /Left/);
+  assert.match(formulationHtml, /Goal Test/i);
+  assert.match(formulationHtml, /Path Cost/i);
+
+  // Invariance mathematical proof
+  assert.match(formulationHtml, /Inversion Parity Invariance Principle/);
+
+  // No video mentions
+  assert.doesNotMatch(formulationHtml, /video/i);
 });
 
-test('algorithm theory section covers all 8 criteria for Depth First Search', () => {
+test('algorithm.html covers all 8 criteria for Depth First Search and pseudocode', () => {
+  // Student identity and navigation
+  assert.match(algorithmHtml, /Raj Vardhan Singh/);
+  assert.match(algorithmHtml, /24BDS0200/);
+  assert.match(algorithmHtml, /href="algorithm\.html" class="nav-pill is-active"/);
+
   // 1. Description
-  assert.match(html, /Depth First Search/i);
+  assert.match(algorithmHtml, /Depth First Search/i);
   // 2. Working Principle
-  assert.match(html, /LIFO/i);
-  assert.match(html, /stack/i);
-  assert.match(html, /backtrack/i);
-  // 3. Advantages
-  assert.match(html, /advantage/i);
-  // 4. Limitations
-  assert.match(html, /limitation/i);
-  // 5. Time Complexity
-  assert.match(html, /O\(b\^?m\)/);
-  // 6. Space Complexity
-  assert.match(html, /O\(bm\)/);
+  assert.match(algorithmHtml, /LIFO/i);
+  assert.match(algorithmHtml, /stack/i);
+  assert.match(algorithmHtml, /backtrack/i);
+  // 3. Deterministic Successor Order
+  assert.match(algorithmHtml, /Up,\s*Right,\s*Down,\s*Left/);
+  // 4. Advantages
+  assert.match(algorithmHtml, /advantage/i);
+  // 5. Limitations
+  assert.match(algorithmHtml, /limitation/i);
+  // 6. Complexity Analysis
+  assert.match(algorithmHtml, /b\^?m/);
+  assert.match(algorithmHtml, /bm/);
   // 7. Completeness
-  assert.match(html, /complete/i);
+  assert.match(algorithmHtml, /complete/i);
   // 8. Optimality
-  assert.match(html, /optimal/i);
-  // Deterministic successor order
-  assert.match(html, /Up,\s*Right,\s*Down,\s*Left/);
+  assert.match(algorithmHtml, /optimal/i);
+
+  // Pseudocode present
+  assert.match(algorithmHtml, /GraphDFS/);
+  assert.match(algorithmHtml, /visited/);
+
+  // No video mentions
+  assert.doesNotMatch(algorithmHtml, /video/i);
 });
 
-test('algorithm comparison table covers all six search algorithms specified by the rubric', () => {
+test('comparison.html covers benchmark example instance and all six search algorithms', () => {
+  // Student identity and navigation
+  assert.match(comparisonHtml, /Raj Vardhan Singh/);
+  assert.match(comparisonHtml, /24BDS0200/);
+  assert.match(comparisonHtml, /href="comparison\.html" class="nav-pill is-active"/);
+
+  // Benchmark Example Puzzle Instance from Assignment Specification
+  assert.match(comparisonHtml, /Benchmark Puzzle Instance/);
+  assert.match(comparisonHtml, /Initial State/);
+  assert.match(comparisonHtml, /Goal State/);
+  assert.match(comparisonHtml, /aria-label="Example initial state: 2, 8, 3, 1, 6, 4, 7, blank, 5"/);
+  assert.match(comparisonHtml, /aria-label="Example goal state: 1, 2, 3, 8, blank, 4, 7, 6, 5"/);
+
+  // All 6 algorithms evaluated
   for (const algo of ['BFS', 'DFS', 'DLS', 'IDDLS', 'GBFS', 'A*']) {
-    assert.ok(html.includes(algo), `missing algorithm ${algo} in comparison table`);
+    assert.ok(comparisonHtml.includes(algo), `missing algorithm ${algo} in comparison table`);
   }
+
+  // All required table columns
   for (const col of ['Algorithm', 'Solution Found', 'Nodes Expanded', 'Moves', 'Time', 'Memory', 'Completeness', 'Optimality']) {
-    assert.ok(html.includes(col), `missing column heading ${col}`);
+    assert.ok(comparisonHtml.includes(col), `missing column heading ${col}`);
   }
+
+  // Analytical takeaways & heuristics comparison
+  assert.match(comparisonHtml, /Manhattan/);
+  assert.match(comparisonHtml, /Iterative Deepening/);
+
+  // No video mentions
+  assert.doesNotMatch(comparisonHtml, /video/i);
 });

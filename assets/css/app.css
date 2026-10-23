@@ -1020,6 +1020,40 @@ p {
   background: var(--active);
 }
 
+.nav-pill.is-active {
+  border-color: var(--accent);
+  color: var(--accent-dark);
+  background: var(--active);
+  font-weight: 600;
+}
+
+.example-instance-card {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--raised);
+  margin-bottom: 24px;
+}
+
+.example-boards-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 14px;
+}
+
+.example-board-box {
+  flex: 1 1 200px;
+  max-width: 240px;
+}
+
+.example-board-box h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-dark);
+}
+
 /* Folio Sections (Theory, Comparison, Demo Guide) */
 .folio-section {
   margin-top: 36px;

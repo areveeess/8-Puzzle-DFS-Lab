@@ -37,12 +37,12 @@
       </div>
     </header>
 
-    <nav class="app-nav" aria-label="Page navigation">
+    <nav class="app-nav" aria-label="Main Navigation">
       <ul class="nav-pills">
-        <li><a href="#workbench" class="nav-pill">Workbench</a></li>
-        <li><a href="#problem-formulation" class="nav-pill">8-Puzzle Formulation</a></li>
-        <li><a href="#algorithm-theory" class="nav-pill">DFS Algorithm Theory</a></li>
-        <li><a href="#algorithm-comparison" class="nav-pill">Algorithm Comparison</a></li>
+        <li><a href="index.html" class="nav-pill is-active" aria-current="page">Interactive Solver</a></li>
+        <li><a href="formulation.html" class="nav-pill">Problem Formulation</a></li>
+        <li><a href="algorithm.html" class="nav-pill">Algorithm Information</a></li>
+        <li><a href="comparison.html" class="nav-pill">Comparison Page</a></li>
       </ul>
     </nav>
 
@@ -143,164 +143,28 @@
         <div id="result-content" role="status" aria-live="polite"></div>
       </section>
 
-      <section id="problem-formulation" class="folio-section" aria-labelledby="formulation-heading">
+      <section class="folio-section" aria-labelledby="modules-heading">
         <div class="section-heading">
-          <h2 id="formulation-heading">8-Puzzle Problem Formulation</h2>
-          <span class="section-badge">State-Space Model</span>
+          <h2 id="modules-heading">Assignment Exploration Modules</h2>
+          <span class="section-badge">Dedicated Theory &amp; Evaluation Pages</span>
         </div>
+        <p class="section-lead">Explore the theoretical foundations, DFS algorithm mechanics, and comprehensive multi-algorithm comparison across dedicated pages:</p>
         <div class="theory-grid">
           <article class="theory-card">
-            <h3>State Representation</h3>
-            <p>The 8-puzzle is modeled on a 3×3 grid with 8 uniquely numbered tiles (1 through 8) and one empty blank space (0). Any arrangement is a permutation of the 9 symbols.</p>
+            <h3>8-Puzzle Problem Formulation</h3>
+            <p>Formal AI state-space modeling, 3×3 permutation space ($9! = 362,880$), 181,440 reachable parity components, and mathematical inversion invariance proof.</p>
+            <p class="mb-0 mt-3"><a href="formulation.html" class="btn btn-outline-secondary btn-sm">Open Problem Formulation &rarr;</a></p>
           </article>
           <article class="theory-card">
-            <h3>State Space & Reachability</h3>
-            <p>The total permutations number <strong>9! = 362,880</strong>. Due to sliding motion geometry, the graph partitions into two disjoint components of <strong>181,440</strong> states each based on <strong>inversion parity</strong>. A valid move preserves parity; initial and goal states must share the same parity to be solvable.</p>
+            <h3>Algorithm Information: DFS</h3>
+            <p>Comprehensive analysis of Algorithm 2 (DFS): LIFO stack dynamics, deterministic Up-Right-Down-Left successor generation, space $\mathcal{O}(bm)$ and time $\mathcal{O}(b^m)$ complexities, and iterative pseudocode.</p>
+            <p class="mb-0 mt-3"><a href="algorithm.html" class="btn btn-outline-secondary btn-sm">Open Algorithm Information &rarr;</a></p>
           </article>
           <article class="theory-card">
-            <h3>Actions & Transitions</h3>
-            <p>A transition occurs by sliding an adjacent tile into the blank position, equivalent to moving the blank <strong>Up</strong>, <strong>Right</strong>, <strong>Down</strong>, or <strong>Left</strong>. Border tiles have 2–4 legal moves.</p>
+            <h3>Algorithm Comparison Page</h3>
+            <p>Comparative evaluation of all six search algorithms (BFS, DFS, DLS, IDDLS, GBFS, A*) on the official Page 3 &amp; 6 benchmark puzzle instance with visual initial/goal boards.</p>
+            <p class="mb-0 mt-3"><a href="comparison.html" class="btn btn-outline-secondary btn-sm">Open Comparison &amp; Benchmark &rarr;</a></p>
           </article>
-          <article class="theory-card">
-            <h3>Goal Test & Path Cost</h3>
-            <p>The goal test checks if the current board matches the target configuration. Each move has a uniform step cost of 1; the total path cost equals the move count.</p>
-          </article>
-        </div>
-      </section>
-
-      <section id="algorithm-theory" class="folio-section" aria-labelledby="theory-heading">
-        <div class="section-heading">
-          <h2 id="theory-heading">Assigned Algorithm: Depth First Search (DFS)</h2>
-          <span class="section-badge">Register: 24BDS0200 · Raj Vardhan Singh</span>
-        </div>
-        <div class="theory-grid">
-          <article class="theory-card">
-            <h3>1. Description</h3>
-            <p>Depth First Search (DFS) is an uninformed graph search algorithm that explores as deep as possible along each branch before backtracking. It is implemented from scratch for this AI assignment using native JavaScript in a background Web Worker.</p>
-          </article>
-          <article class="theory-card">
-            <h3>2. Working Principle</h3>
-            <p>DFS utilizes a <strong>LIFO (Last-In, First-Out) stack</strong> for its frontier. The most recently discovered state is pushed to the top and expanded next. When a state has no new successors or reaches an already-discovered state, DFS initiates <strong>backtracking</strong> to the nearest ancestor with unvisited branches. An explicit <strong>visited set</strong> provides cycle detection to prevent infinite looping.</p>
-          </article>
-          <article class="theory-card">
-            <h3>3. Successor Order</h3>
-            <p>Successors are generated in deterministic order: <strong>Up, Right, Down, Left</strong> for blank tile movement. This guarantees reproducible search trajectories across runs.</p>
-          </article>
-          <article class="theory-card">
-            <h3>4. Advantages</h3>
-            <p>The primary advantage of DFS is low memory consumption. It only stores the active branch path and unexpanded siblings on the frontier stack, requiring far less RAM than BFS on wide search graphs. If the goal is situated deep along an early branch, DFS can find it quickly.</p>
-          </article>
-          <article class="theory-card">
-            <h3>5. Limitations</h3>
-            <p>DFS can traverse deep unpromising branches before backtracking, making worst-case time high. It is non-optimal and may return an excessively long route even when a short solution exists. Without cycle detection, it can become trapped in infinite loops.</p>
-          </article>
-          <article class="theory-card">
-            <h3>6. Complexity Analysis</h3>
-            <p><strong>Time Complexity</strong>: <strong>O(b^m)</strong>, where <em>b</em> is the branching factor (average ~3 in 8-puzzle) and <em>m</em> is the maximum search depth.</p>
-            <p><strong>Space Complexity</strong>: <strong>O(bm)</strong>, linear in maximum depth <em>m</em> because only active branch ancestors and unexplored siblings reside in the frontier stack.</p>
-          </article>
-          <article class="theory-card">
-            <h3>7. Completeness</h3>
-            <p>DFS is <strong>complete</strong> on finite state spaces when equipped with cycle detection (visited set). Without cycle detection or in infinite graphs, it is incomplete as it may follow infinite paths.</p>
-          </article>
-          <article class="theory-card">
-            <h3>8. Optimality</h3>
-            <p>DFS is <strong>non-optimal</strong>. It terminates immediately upon discovering any goal path, which depends strictly on tree traversal order rather than minimal step cost.</p>
-          </article>
-        </div>
-      </section>
-
-      <section id="algorithm-comparison" class="folio-section" aria-labelledby="comparison-heading">
-        <div class="section-heading">
-          <h2 id="comparison-heading">Algorithm Comparison Table</h2>
-          <span class="section-badge">Identical 8-Puzzle Benchmark (Page 6 Rubric)</span>
-        </div>
-        <p class="section-lead">Performance comparison of all six search algorithms evaluated on the standard 8-puzzle test instance specified in the assignment document.</p>
-        <div class="comparison-table-wrapper">
-          <table class="table comparison-table mb-0">
-            <thead>
-              <tr>
-                <th scope="col">Algorithm</th>
-                <th scope="col">Solution Found</th>
-                <th scope="col">Nodes Expanded</th>
-                <th scope="col">Moves</th>
-                <th scope="col">Time</th>
-                <th scope="col">Memory</th>
-                <th scope="col">Completeness</th>
-                <th scope="col">Optimality</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th scope="row">BFS</th>
-                <td><span class="badge-status is-found">Yes</span></td>
-                <td>152</td>
-                <td>8</td>
-                <td>24 ms</td>
-                <td>High</td>
-                <td>Complete</td>
-                <td>Optimal</td>
-              </tr>
-              <tr class="table-active-row">
-                <th scope="row">DFS (Assigned)</th>
-                <td><span class="badge-status is-found">Yes</span></td>
-                <td>391</td>
-                <td>21</td>
-                <td>12 ms</td>
-                <td>Low</td>
-                <td>Complete (with cycle check)</td>
-                <td>Non-optimal</td>
-              </tr>
-              <tr>
-                <th scope="row">DLS (Limit = 5)</th>
-                <td><span class="badge-status is-exhausted">No</span></td>
-                <td>85</td>
-                <td>—</td>
-                <td>8 ms</td>
-                <td>Low</td>
-                <td>Incomplete (if d &gt; L)</td>
-                <td>Non-optimal</td>
-              </tr>
-              <tr>
-                <th scope="row">IDDLS</th>
-                <td><span class="badge-status is-found">Yes</span></td>
-                <td>170</td>
-                <td>8</td>
-                <td>30 ms</td>
-                <td>Medium</td>
-                <td>Complete</td>
-                <td>Optimal</td>
-              </tr>
-              <tr>
-                <th scope="row">GBFS (Manhattan)</th>
-                <td><span class="badge-status is-found">Yes</span></td>
-                <td>39</td>
-                <td>8</td>
-                <td>5 ms</td>
-                <td>Low</td>
-                <td>Incomplete (can loop)</td>
-                <td>Non-optimal</td>
-              </tr>
-              <tr>
-                <th scope="row">A* (Manhattan)</th>
-                <td><span class="badge-status is-found">Yes</span></td>
-                <td>25</td>
-                <td>8</td>
-                <td>4 ms</td>
-                <td>Medium</td>
-                <td>Complete</td>
-                <td>Optimal (with admissible h)</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="comparison-analysis">
-          <h3>Analytical Takeaways</h3>
-          <ul>
-            <li><strong>Uninformed vs. Informed:</strong> A* expands only 25 nodes compared to BFS's 152 and DFS's 391, demonstrating the power of Manhattan distance heuristics in focusing search effort.</li>
-            <li><strong>DFS Memory Advantage:</strong> DFS maintains low memory ($O(bm)$) even on complex puzzles, while BFS memory explodes exponentially ($O(b^d)$) with solution depth.</li>
-            <li><strong>Optimality Trade-off:</strong> DFS discovered a solution of 21 moves, whereas BFS and A* found the optimal 8-move sequence. DFS prioritizes search depth over path length.</li>
-          </ul>
         </div>
       </section>
 

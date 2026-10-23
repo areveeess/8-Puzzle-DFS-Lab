@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#eaf1f3">
+    <title>8-Puzzle Problem Formulation · AI Search Lab</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+  </head>
+  <body>
+    <header class="app-bar" aria-label="Course and student identity">
+      <div class="app-brand">
+        <svg class="product-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect x="1" y="1" width="8" height="8" rx="1" />
+          <rect x="12" y="1" width="8" height="8" rx="1" />
+          <rect x="23" y="1" width="8" height="8" rx="1" />
+          <rect x="1" y="12" width="8" height="8" rx="1" />
+          <rect x="12" y="12" width="8" height="8" rx="1" />
+          <rect x="23" y="12" width="8" height="8" rx="1" />
+          <rect x="1" y="23" width="8" height="8" rx="1" />
+          <rect x="12" y="23" width="8" height="8" rx="1" />
+          <rect class="product-mark-route" x="23" y="23" width="8" height="8" rx="1" />
+        </svg>
+        <div class="brand-titles">
+          <span class="brand-name">8-Puzzle DFS Lab</span>
+          <span class="brand-course">Course: Artificial Intelligence</span>
+        </div>
+      </div>
+      <div class="student-meta">
+        <p class="student-reference mb-0">
+          <span class="student-assignment">Interactive 8-Puzzle Problem Solver using AI Search Algorithms</span>
+          <span class="student-name">Student: <strong class="student-name-value">Raj Vardhan Singh</strong></span>
+          <span class="student-register">Register no. <strong class="student-register-number">24BDS0200</strong></span>
+        </p>
+      </div>
+    </header>
+
+    <nav class="app-nav" aria-label="Main Navigation">
+      <ul class="nav-pills">
+        <li><a href="index.html" class="nav-pill">Interactive Solver</a></li>
+        <li><a href="formulation.html" class="nav-pill is-active" aria-current="page">Problem Formulation</a></li>
+        <li><a href="algorithm.html" class="nav-pill">Algorithm Information</a></li>
+        <li><a href="comparison.html" class="nav-pill">Comparison Page</a></li>
+      </ul>
+    </nav>
+
+    <main id="main-content" class="app-sheet">
+      <header class="page-heading">
+        <div>
+          <h1>8-Puzzle Problem Formulation</h1>
+          <p>Formal AI state-space modeling, transition dynamics, and reachability invariants.</p>
+        </div>
+      </header>
+
+      <section id="problem-formulation" class="folio-section pt-0 border-top-0" aria-labelledby="formulation-overview">
+        <div class="section-heading">
+          <h2 id="formulation-overview">1. Problem Definition</h2>
+          <span class="section-badge">Classic AI Benchmark</span>
+        </div>
+        <p class="section-lead">The 8-puzzle is a classic state-space search problem introduced by Sam Loyd in the late 19th century. It consists of a 3×3 square frame containing 8 square tiles numbered 1 through 8, along with one empty space (blank tile, represented by 0). Tiles adjacent to the blank space can slide horizontally or vertically into the empty position. The task is to discover a sequence of valid moves that converts an arbitrary initial state into a designated goal state.</p>
+
+        <div class="theory-grid mb-4">
+          <article class="theory-card">
+            <h3>State Representation</h3>
+            <p>A state is formalized as a permutation vector $S = [t_0, t_1, \dots, t_8]$ where each $t_i \in \{0, 1, 2, \dots, 8\}$ and all values are distinct. Index $i$ maps to row $\lfloor i / 3 \rfloor$ and column $i \pmod 3$.</p>
+          </article>
+          <article class="theory-card">
+            <h3>Initial & Goal States</h3>
+            <p>The <strong>Initial State</strong> is any given starting board permutation. The <strong>Goal State</strong> is the specified target permutation (e.g., standard canonical order $[1, 2, 3, 4, 0, 5, 7, 8, 6]$ or classical $[1, 2, 3, 8, 0, 4, 7, 6, 5]$).</p>
+          </article>
+          <article class="theory-card">
+            <h3>Actions & Transitions</h3>
+            <p>Operators are defined by the motion of the blank space: <code>Up</code>, <code>Right</code>, <code>Down</code>, or <code>Left</code>. In interior positions, 4 actions are possible; at edges, 3 actions; at corners, 2 actions.</p>
+          </article>
+          <article class="theory-card">
+            <h3>Goal Test & Path Cost</h3>
+            <p>The goal test is an exact equality comparison between the current state array and the goal state array. Every sliding action has a uniform step cost of 1; total path cost equals the number of moves.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="folio-section" aria-labelledby="reachability-heading">
+        <div class="section-heading">
+          <h2 id="reachability-heading">2. State-Space Size & Reachability Theorem</h2>
+          <span class="section-badge">Mathematical Proof</span>
+        </div>
+        <div class="theory-grid">
+          <article class="theory-card">
+            <h3>Total Permutations: 362,880</h3>
+            <p>Arranging 9 distinct symbols across 9 grid locations yields $9! = 362,880$ total possible board arrangements. However, half of these states can never reach the other half through legal sliding moves.</p>
+          </article>
+          <article class="theory-card">
+            <h3>Reachable State Space: 181,440</h3>
+            <p>Because sliding operations preserve permutation parity, the state space partitions into exactly <strong>two disjoint, equal-sized reachability components of 181,440 states ($9! / 2$) each</strong>. No sequence of legal moves can cross between components.</p>
+          </article>
+        </div>
+
+        <div class="comparison-analysis mt-4">
+          <h3>Inversion Parity Invariance Principle</h3>
+          <p class="mb-2">An <strong>inversion</strong> occurs whenever a tile with a higher number precedes a tile with a lower number when reading the board in row-major order (ignoring the blank tile 0):</p>
+          <p class="mb-2">$$\text{Inversions} = \sum_{i < j, t_i \neq 0, t_j \neq 0} [t_i > t_j]$$</p>
+          <ul>
+            <li><strong>Horizontal blank move (Left / Right):</strong> Swaps the blank with an immediately adjacent tile. Since the relative order of all numbered tiles remains completely identical, the inversion count does not change ($\Delta \text{inv} = 0$).</li>
+            <li><strong>Vertical blank move (Up / Down):</strong> Moves the blank three positions ahead or behind in the linear array. This shifts one numbered tile over exactly two other numbered tiles. As a consequence, the inversion count changes by either $+2$, $0$, or $-2$.</li>
+            <li><strong>Conclusion:</strong> In every legal 8-puzzle slide, the parity of the inversion count remains strictly invariant: $\text{inv}(S') \equiv \text{inv}(S) \pmod 2$. An initial state can reach a goal state <em>if and only if</em> their inversion counts have identical parity.</li>
+          </ul>
+        </div>
+      </section>
+
+      <footer class="app-footer">
+        <p class="mb-0">Course: Artificial Intelligence · Student: Raj Vardhan Singh (24BDS0200) · Algorithm 2: Depth First Search</p>
+      </footer>
+    </main>
+  </body>
+</html>

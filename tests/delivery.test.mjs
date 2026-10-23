@@ -31,17 +31,31 @@ test('README.md includes all sections mandated by the assignment specification',
   assert.match(readme, /Misplaced Tiles/i);
 });
 
-test('index.html uses strict relative paths for GitHub Pages subpath compatibility', () => {
-  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+test('all HTML pages exist and use strict relative paths for GitHub Pages subpath compatibility', () => {
+  const pages = ['index.html', 'formulation.html', 'algorithm.html', 'comparison.html'];
 
-  // No absolute root paths starting with /
-  const absoluteMatches = html.match(/(?:href|src)=["']\/[^"']+/g) ?? [];
-  assert.deepEqual(absoluteMatches, [], 'index.html must not use root-relative paths like href="/..."');
+  for (const pageName of pages) {
+    const pageUrl = new URL(`../${pageName}`, import.meta.url);
+    assert.ok(existsSync(pageUrl), `Page ${pageName} must exist on disk`);
 
-  // Local assets must exist on disk
-  const assetMatches = [...html.matchAll(/(?:href|src)=["']([^"']+\.(?:css|js))["']/g)].map((m) => m[1]);
-  for (const assetPath of assetMatches) {
-    const fileUrl = new URL(`../${assetPath}`, import.meta.url);
-    assert.ok(existsSync(fileUrl), `Asset ${assetPath} referenced in index.html must exist on disk`);
+    const pageContent = readFileSync(pageUrl, 'utf8');
+
+    // No absolute root paths starting with /
+    const absoluteMatches = pageContent.match(/(?:href|src)=["']\/[^"']+/g) ?? [];
+    assert.deepEqual(absoluteMatches, [], `${pageName} must not use root-relative paths like href="/..."`);
+
+    // Local assets (CSS, JS) must exist on disk
+    const assetMatches = [...pageContent.matchAll(/(?:href|src)=["']([^"']+\.(?:css|js))["']/g)].map((m) => m[1]);
+    for (const assetPath of assetMatches) {
+      const fileUrl = new URL(`../${assetPath}`, import.meta.url);
+      assert.ok(existsSync(fileUrl), `Asset ${assetPath} referenced in ${pageName} must exist on disk`);
+    }
+
+    // HTML link targets must exist on disk
+    const htmlMatches = [...pageContent.matchAll(/(?:href)=["']([^"']+\.html)["']/g)].map((m) => m[1]);
+    for (const htmlTarget of htmlMatches) {
+      const targetUrl = new URL(`../${htmlTarget}`, import.meta.url);
+      assert.ok(existsSync(targetUrl), `Target ${htmlTarget} linked in ${pageName} must exist on disk`);
+    }
   }
 });

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#eaf1f3">
+    <title>Algorithm Information · Depth First Search (DFS)</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+  </head>
+  <body>
+    <header class="app-bar" aria-label="Course and student identity">
+      <div class="app-brand">
+        <svg class="product-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect x="1" y="1" width="8" height="8" rx="1" />
+          <rect x="12" y="1" width="8" height="8" rx="1" />
+          <rect x="23" y="1" width="8" height="8" rx="1" />
+          <rect x="1" y="12" width="8" height="8" rx="1" />
+          <rect x="12" y="12" width="8" height="8" rx="1" />
+          <rect x="23" y="12" width="8" height="8" rx="1" />
+          <rect x="1" y="23" width="8" height="8" rx="1" />
+          <rect x="12" y="23" width="8" height="8" rx="1" />
+          <rect class="product-mark-route" x="23" y="23" width="8" height="8" rx="1" />
+        </svg>
+        <div class="brand-titles">
+          <span class="brand-name">8-Puzzle DFS Lab</span>
+          <span class="brand-course">Course: Artificial Intelligence</span>
+        </div>
+      </div>
+      <div class="student-meta">
+        <p class="student-reference mb-0">
+          <span class="student-assignment">Interactive 8-Puzzle Problem Solver using AI Search Algorithms</span>
+          <span class="student-name">Student: <strong class="student-name-value">Raj Vardhan Singh</strong></span>
+          <span class="student-register">Register no. <strong class="student-register-number">24BDS0200</strong></span>
+        </p>
+      </div>
+    </header>
+
+    <nav class="app-nav" aria-label="Main Navigation">
+      <ul class="nav-pills">
+        <li><a href="index.html" class="nav-pill">Interactive Solver</a></li>
+        <li><a href="formulation.html" class="nav-pill">Problem Formulation</a></li>
+        <li><a href="algorithm.html" class="nav-pill is-active" aria-current="page">Algorithm Information</a></li>
+        <li><a href="comparison.html" class="nav-pill">Comparison Page</a></li>
+      </ul>
+    </nav>
+
+    <main id="main-content" class="app-sheet">
+      <header class="page-heading">
+        <div>
+          <h1>Algorithm Information: Depth First Search (DFS)</h1>
+          <p>Comprehensive breakdown of Algorithm 2 allotted to Register 24BDS0200 (Raj Vardhan Singh).</p>
+        </div>
+      </header>
+
+      <section id="algorithm-theory" class="folio-section pt-0 border-top-0" aria-labelledby="theory-overview">
+        <div class="section-heading">
+          <h2 id="theory-overview">Assigned Algorithm Specifications</h2>
+          <span class="section-badge">Allotted: Algorithm 2 (DFS)</span>
+        </div>
+        <p class="section-lead">Depth First Search is an uninformed graph search strategy that systematically progresses down deep branches of the search space before exploring sibling paths. This page details all eight required theoretical criteria evaluated in the course curriculum.</p>
+
+        <div class="theory-grid">
+          <article class="theory-card">
+            <h3>1. Description</h3>
+            <p>Depth First Search (DFS) begins at the root state and explores as deeply as possible along each branch before backtracking. In this web application, DFS is implemented from scratch using native JavaScript and runs within a dedicated Web Worker to avoid freezing the browser user interface.</p>
+          </article>
+
+          <article class="theory-card">
+            <h3>2. Working Principle</h3>
+            <p>DFS utilizes an explicit <strong>Last-In, First-Out (LIFO) stack</strong> for its frontier. Nodes are expanded from the top of the stack. When the search encounters a state with no new successors or an already-explored state, it <strong>backtracks</strong> to the most recent predecessor possessing unexpanded children. An explicit <strong>visited set (Closed List)</strong> provides cycle detection to prevent infinite loops.</p>
+          </article>
+
+          <article class="theory-card">
+            <h3>3. Deterministic Successor Order</h3>
+            <p>To ensure deterministic and inspectable search behavior, blank tile moves are strictly generated in the order: <strong>Up, Right, Down, Left</strong>. Successors are checked against the visited set before pushing to the frontier stack.</p>
+          </article>
+
+          <article class="theory-card">
+            <h3>4. Advantages</h3>
+            <p>The foremost advantage of DFS is its **minimal memory requirement**. Storing only the path from the root to the current node plus unexpanded sibling nodes requires only $\mathcal{O}(bm)$ space, which is negligible compared to Breadth First Search ($\mathcal{O}(b^d)$). When lucky enough that the goal resides along an early deep branch, DFS finds a solution rapidly.</p>
+          </article>
+
+          <article class="theory-card">
+            <h3>5. Limitations</h3>
+            <p>DFS is **non-optimal** and frequently returns long, convoluted solution paths even when a short solution exists. Without cycle detection, it can become trapped in infinite loops. Worst-case time complexity is exponential, as it may explore vast irrelevant subtrees before backtracking.</p>
+          </article>
+
+          <article class="theory-card">
+            <h3>6. Complexity Analysis</h3>
+            <p><strong>Time Complexity:</strong> <strong>$\mathcal{O}(b^m)$</strong>, where $b$ is the average branching factor ($b \approx 3$ for the 8-puzzle) and $m$ is the maximum depth reached in the search tree.</p>
+            <p><strong>Space Complexity:</strong> <strong>$\mathcal{O}(bm)$</strong>, linear in maximum depth $m$. It only stores nodes along the active branch and unexplored siblings on the frontier stack.</p>
+          </article>
+
+          <article class="theory-card">
+            <h3>7. Completeness</h3>
+            <p>DFS is <strong>complete</strong> on finite state spaces with cycle detection (visited set). In infinite search trees or without visited tracking, it is incomplete as it may follow infinite non-goal paths.</p>
+          </article>
+
+          <article class="theory-card">
+            <h3>8. Optimality</h3>
+            <p>DFS is <strong>non-optimal</strong>. The algorithm halts immediately upon encountering the first goal node, which is determined strictly by stack order rather than minimal step cost.</p>
+          </article>
+        </div>
+
+        <div class="comparison-analysis mt-4">
+          <h3>Algorithm Pseudocode (Iterative Graph-Search DFS)</h3>
+          <pre class="mb-0" style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--text); background: var(--surface); padding: 16px; border-radius: var(--radius-control); border: 1px solid var(--border); overflow-x: auto;">
+function GraphDFS(initialState, goalState, expansionLimit):
+    frontier = new Stack()
+    visited = new Set()
+    
+    frontier.push({ state: initialState, depth: 0, parent: null, move: null })
+    visited.add(initialState.key)
+    
+    while frontier is not empty:
+        if expandedCount >= expansionLimit:
+            return LimitReached
+            
+        current = frontier.pop()
+        
+        if current.state == goalState:
+            return ReconstructRoute(current)
+            
+        expandedCount += 1
+        
+        // Successors in deterministic order: Up, Right, Down, Left
+        for action in [Up, Right, Down, Left]:
+            if action is legal for current.state:
+                successor = ApplyMove(current.state, action)
+                if successor.key not in visited:
+                    visited.add(successor.key)
+                    frontier.push({ state: successor, depth: current.depth + 1, parent: current, move: action })
+                    
+    return ExhaustedNoSolution
+          </pre>
+        </div>
+      </section>
+
+      <footer class="app-footer">
+        <p class="mb-0">Course: Artificial Intelligence · Student: Raj Vardhan Singh (24BDS0200) · Algorithm 2: Depth First Search</p>
+      </footer>
+    </main>
+  </body>
+</html>
