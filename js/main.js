@@ -5,6 +5,7 @@ import {
   validateSearchResult,
 } from './solver.mjs';
 import { buildTraceInspectorModel } from './trace-model.mjs';
+import { createPlaybackController } from './playback.mjs';
 
 const DEFAULT_START = [1, 2, 3, 4, 8, 5, 7, 0, 6];
 const DEFAULT_GOAL = [1, 2, 3, 4, 0, 5, 7, 8, 6];
@@ -48,6 +49,7 @@ let traceCursor = 0;
 let selectedInspectorStateKey = null;
 let routeStates = [];
 let routeCursor = 0;
+let playback = null;
 
 function createCellSelect(boardName, value, index) {
   const select = document.createElement('select');
@@ -152,6 +154,10 @@ function updateValidation() {
 }
 
 function resetTracePanel() {
+  if (playback) {
+    playback.invalidate();
+    playback = null;
+  }
   traceResult = null;
   traceStartBoard = null;
   traceGoalBoard = null;
@@ -233,7 +239,45 @@ function eventExplanation(event) {
   return 'Goal found. This is the route returned by DFS, not a shortest-path guarantee.';
 }
 
+function syncPlaybackUI(state, reason, announce) {
+  traceCursor = state.traceCursor;
+  routeCursor = state.routeCursor;
+  updateTracePanel();
+
+  if (announce && reason) {
+    if (reason === 'play') {
+      elements.traceStatus.textContent = state.activeChannel === 'trace'
+        ? `Playing DFS trace at ${state.speed}× speed.`
+        : `Playing solution route at ${state.speed}× speed.`;
+    } else if (reason === 'pause') {
+      elements.traceStatus.textContent = state.activeChannel === 'trace'
+        ? `Paused DFS trace at event ${formatCount(state.traceCursor + 1)}.`
+        : `Paused solution route at move ${formatCount(state.routeCursor)}.`;
+    } else if (reason === 'reset') {
+      elements.traceStatus.textContent = state.activeChannel === 'trace'
+        ? 'Reset DFS trace to event 1.'
+        : 'Reset solution route to initial board.';
+    } else if (reason === 'complete') {
+      elements.traceStatus.textContent = state.activeChannel === 'trace'
+        ? 'Reached end of DFS trace.'
+        : 'Reached final goal state.';
+    } else if (reason === 'step') {
+      if (state.activeChannel === 'trace') {
+        const ev = traceResult?.trace?.events?.[state.traceCursor];
+        if (ev) {
+          elements.traceStatus.textContent = `Event ${formatCount(state.traceCursor + 1)} of ${formatCount(state.traceLength)}: ${eventExplanation(ev)}`;
+        }
+      } else {
+        elements.traceStatus.textContent = state.routeCursor === 0
+          ? 'Route at initial board.'
+          : `Route move ${formatCount(state.routeCursor)} of ${formatCount(state.routeLength - 1)}: move blank ${traceResult.moves[state.routeCursor - 1].toLowerCase()}.`;
+      }
+    }
+  }
+}
+
 function updateTracePanel() {
+  const focusedId = document.activeElement?.id;
   const { events } = traceResult.trace;
   const event = events[traceCursor];
   const inspector = buildTraceInspectorModel(traceResult.trace, traceCursor, selectedInspectorStateKey);
@@ -242,7 +286,10 @@ function updateTracePanel() {
   const expansionBoard = expansion?.board ?? event.board;
   const expansionDepth = expansion?.depth ?? event.depth;
   const expansionSuccessors = expansion?.successors ?? [];
-  elements.traceStatus.textContent = `${inspector.traceNotice} Event ${formatCount(traceCursor + 1)} of ${formatCount(events.length)}: ${eventExplanation(event)}`;
+
+  if (!playback?.getState().playing) {
+    elements.traceStatus.textContent = `${inspector.traceNotice} Event ${formatCount(traceCursor + 1)} of ${formatCount(events.length)}: ${eventExplanation(event)}`;
+  }
   elements.traceContent.replaceChildren();
   renderTraceContext(elements.traceContent);
 
@@ -301,6 +348,27 @@ function updateTracePanel() {
 
   const controls = document.createElement('div');
   controls.className = 'trace-step-controls';
+
+  const isTracePlaying = playback ? (playback.getState().playing && playback.getState().activeChannel === 'trace') : false;
+  const currentSpeed = playback ? playback.getState().speed : 1;
+  const currentMs = playback ? playback.getState().playbackMs : 0;
+
+  const playToggle = document.createElement('button');
+  playToggle.id = 'trace-play-toggle';
+  playToggle.type = 'button';
+  playToggle.className = 'btn btn-outline-primary';
+  playToggle.textContent = isTracePlaying ? 'Pause trace' : (traceCursor > 0 && traceCursor < events.length - 1 ? 'Resume trace' : 'Play trace');
+  playToggle.disabled = events.length < 2 || (traceCursor >= events.length - 1 && !isTracePlaying);
+  playToggle.setAttribute('aria-label', playToggle.textContent);
+  playToggle.addEventListener('click', () => {
+    if (!playback) return;
+    if (playback.getState().playing && playback.getState().activeChannel === 'trace') {
+      playback.pause();
+    } else {
+      playback.play('trace');
+    }
+  });
+
   const previous = document.createElement('button');
   previous.id = 'trace-previous-event';
   previous.type = 'button';
@@ -308,10 +376,11 @@ function updateTracePanel() {
   previous.textContent = 'Previous event';
   previous.disabled = traceCursor === 0;
   previous.addEventListener('click', () => {
-    traceCursor = Math.max(0, traceCursor - 1);
-    updateTracePanel();
-    document.querySelector(traceCursor === 0 ? '#trace-next-event' : '#trace-previous-event')?.focus({ preventScroll: true });
+    if (playback) playback.step('trace', -1);
+    else traceCursor = Math.max(0, traceCursor - 1);
+    document.querySelector((playback ? playback.getState().traceCursor : traceCursor) === 0 ? '#trace-next-event' : '#trace-previous-event')?.focus({ preventScroll: true });
   });
+
   const next = document.createElement('button');
   next.id = 'trace-next-event';
   next.type = 'button';
@@ -319,11 +388,44 @@ function updateTracePanel() {
   next.textContent = 'Next event';
   next.disabled = traceCursor >= events.length - 1;
   next.addEventListener('click', () => {
-    traceCursor = Math.min(events.length - 1, traceCursor + 1);
-    updateTracePanel();
-    document.querySelector(traceCursor >= events.length - 1 ? '#trace-previous-event' : '#trace-next-event')?.focus({ preventScroll: true });
+    if (playback) playback.step('trace', 1);
+    else traceCursor = Math.min(events.length - 1, traceCursor + 1);
+    document.querySelector((playback ? playback.getState().traceCursor : traceCursor) >= events.length - 1 ? '#trace-previous-event' : '#trace-next-event')?.focus({ preventScroll: true });
   });
-  controls.append(previous, next);
+
+  const resetTrace = document.createElement('button');
+  resetTrace.id = 'trace-reset';
+  resetTrace.type = 'button';
+  resetTrace.className = 'btn btn-outline-secondary';
+  resetTrace.textContent = 'Reset trace';
+  resetTrace.disabled = traceCursor === 0;
+  resetTrace.addEventListener('click', () => {
+    if (playback) playback.reset('trace');
+    else traceCursor = 0;
+    document.querySelector('#trace-play-toggle')?.focus({ preventScroll: true });
+  });
+
+  const speedSelect = document.createElement('select');
+  speedSelect.id = 'trace-speed-select';
+  speedSelect.className = 'form-select playback-speed-select';
+  speedSelect.setAttribute('aria-label', 'Trace playback speed');
+  for (const speed of [0.5, 1, 2]) {
+    const opt = document.createElement('option');
+    opt.value = String(speed);
+    opt.textContent = `${speed}× speed`;
+    if (speed === currentSpeed) opt.selected = true;
+    speedSelect.append(opt);
+  }
+  speedSelect.addEventListener('change', () => {
+    if (playback) playback.setSpeed(Number(speedSelect.value));
+  });
+
+  const playbackTime = document.createElement('span');
+  playbackTime.id = 'trace-playback-time';
+  playbackTime.className = 'playback-time-badge';
+  playbackTime.textContent = `Playback: ${(currentMs / 1000).toFixed(1)} s`;
+
+  controls.append(playToggle, previous, next, resetTrace, speedSelect, playbackTime);
   traceCard.append(controls);
   elements.traceContent.append(traceCard);
 
@@ -387,33 +489,95 @@ function updateTracePanel() {
     renderBoardSnapshot(routeSection, routeState, `Route board ${routeCursor + 1} of ${routeStates.length}`);
     const moveLabel = routeCursor === 0 ? 'Start board' : `After move ${routeCursor}: move the blank ${traceResult.moves[routeCursor - 1].toLowerCase()}.`;
     addText(routeSection, 'p', moveLabel, 'route-step-label');
+
     const routeControls = document.createElement('div');
     routeControls.className = 'trace-step-controls';
+
+    const isZeroMove = routeStates.length <= 1;
+    const isRoutePlaying = playback ? (playback.getState().playing && playback.getState().activeChannel === 'route') : false;
+
+    const routePlayToggle = document.createElement('button');
+    routePlayToggle.id = 'route-play-toggle';
+    routePlayToggle.type = 'button';
+    routePlayToggle.className = 'btn btn-outline-primary';
+    routePlayToggle.textContent = isRoutePlaying ? 'Pause route' : (routeCursor > 0 && routeCursor < routeStates.length - 1 ? 'Resume route' : 'Play route');
+    routePlayToggle.disabled = isZeroMove || (routeCursor >= routeStates.length - 1 && !isRoutePlaying);
+    routePlayToggle.setAttribute('aria-label', routePlayToggle.textContent);
+    routePlayToggle.addEventListener('click', () => {
+      if (!playback) return;
+      if (playback.getState().playing && playback.getState().activeChannel === 'route') {
+        playback.pause();
+      } else {
+        playback.play('route');
+      }
+    });
+
     const routePrevious = document.createElement('button');
     routePrevious.id = 'route-previous-move';
     routePrevious.type = 'button';
     routePrevious.className = 'btn btn-outline-secondary';
     routePrevious.textContent = 'Previous move';
-    routePrevious.disabled = routeCursor === 0;
+    routePrevious.disabled = isZeroMove || routeCursor === 0;
     routePrevious.addEventListener('click', () => {
-      routeCursor = Math.max(0, routeCursor - 1);
-      updateTracePanel();
-      document.querySelector(routeCursor === 0 ? '#route-next-move' : '#route-previous-move')?.focus({ preventScroll: true });
+      if (playback) playback.step('route', -1);
+      else routeCursor = Math.max(0, routeCursor - 1);
+      document.querySelector((playback ? playback.getState().routeCursor : routeCursor) === 0 ? '#route-next-move' : '#route-previous-move')?.focus({ preventScroll: true });
     });
+
     const routeNext = document.createElement('button');
     routeNext.id = 'route-next-move';
     routeNext.type = 'button';
     routeNext.className = 'btn btn-outline-primary';
     routeNext.textContent = 'Next move';
-    routeNext.disabled = routeCursor >= routeStates.length - 1;
+    routeNext.disabled = isZeroMove || routeCursor >= routeStates.length - 1;
     routeNext.addEventListener('click', () => {
-      routeCursor = Math.min(routeStates.length - 1, routeCursor + 1);
-      updateTracePanel();
-      document.querySelector(routeCursor >= routeStates.length - 1 ? '#route-previous-move' : '#route-next-move')?.focus({ preventScroll: true });
+      if (playback) playback.step('route', 1);
+      else routeCursor = Math.min(routeStates.length - 1, routeCursor + 1);
+      document.querySelector((playback ? playback.getState().routeCursor : routeCursor) >= routeStates.length - 1 ? '#route-previous-move' : '#route-next-move')?.focus({ preventScroll: true });
     });
-    routeControls.append(routePrevious, routeNext);
+
+    const routeReset = document.createElement('button');
+    routeReset.id = 'route-reset';
+    routeReset.type = 'button';
+    routeReset.className = 'btn btn-outline-secondary';
+    routeReset.textContent = 'Reset route';
+    routeReset.disabled = isZeroMove || routeCursor === 0;
+    routeReset.addEventListener('click', () => {
+      if (playback) playback.reset('route');
+      else routeCursor = 0;
+      document.querySelector('#route-play-toggle')?.focus({ preventScroll: true });
+    });
+
+    const routeSpeedSelect = document.createElement('select');
+    routeSpeedSelect.id = 'route-speed-select';
+    routeSpeedSelect.className = 'form-select playback-speed-select';
+    routeSpeedSelect.setAttribute('aria-label', 'Route playback speed');
+    for (const speed of [0.5, 1, 2]) {
+      const opt = document.createElement('option');
+      opt.value = String(speed);
+      opt.textContent = `${speed}× speed`;
+      if (speed === currentSpeed) opt.selected = true;
+      routeSpeedSelect.append(opt);
+    }
+    routeSpeedSelect.addEventListener('change', () => {
+      if (playback) playback.setSpeed(Number(routeSpeedSelect.value));
+    });
+
+    const routePlaybackTime = document.createElement('span');
+    routePlaybackTime.id = 'route-playback-time';
+    routePlaybackTime.className = 'playback-time-badge';
+    routePlaybackTime.textContent = `Playback: ${(currentMs / 1000).toFixed(1)} s`;
+
+    routeControls.append(routePlayToggle, routePrevious, routeNext, routeReset, routeSpeedSelect, routePlaybackTime);
     routeSection.append(routeControls);
     elements.traceContent.append(routeSection);
+  }
+
+  if (focusedId) {
+    const el = document.getElementById(focusedId);
+    if (el && !el.disabled) {
+      el.focus({ preventScroll: true });
+    }
   }
 }
 
@@ -454,6 +618,20 @@ function showTraceResult(result, start, goal, expectedRunId) {
     showTraceError();
     return false;
   }
+
+  const traceLength = traceResult.trace?.events?.length ?? 0;
+  const routeLength = routeStates.length;
+  if (playback) {
+    playback.invalidate();
+  }
+  playback = createPlaybackController({
+    traceLength,
+    routeLength,
+    stepDurationMs: 700,
+    onChange(state, { reason, announce }) {
+      syncPlaybackUI(state, reason, announce);
+    },
+  });
 
   elements.traceEmpty.hidden = true;
   elements.traceContent.hidden = false;

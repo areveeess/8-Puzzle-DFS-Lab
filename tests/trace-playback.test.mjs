@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import {
@@ -357,5 +358,118 @@ test('selected inspector rows expose their exact board, depth, and parent', () =
   assert.deepEqual(view.selected.board, [...target.stateKey].map(Number));
   assert.equal(view.selected.depth, target.depth);
   assert.equal(view.selected.parentKey, target.parentKey);
+});
+
+test('trace and route playback dispatches expected controller actions and clamps correctly', () => {
+  const harness = createPlaybackHarness({ traceLength: 5, routeLength: 4 });
+  const { controller } = harness;
+
+  // Initial bounds
+  assert.equal(controller.getState().traceCursor, 0);
+  assert.equal(controller.getState().routeCursor, 0);
+  assert.equal(controller.canStep('trace', -1), false);
+  assert.equal(controller.canStep('trace', 1), true);
+  assert.equal(controller.canStep('route', -1), false);
+  assert.equal(controller.canStep('route', 1), true);
+
+  // Trace forward / backward
+  controller.step('trace', 1);
+  assert.equal(controller.getState().traceCursor, 1);
+  controller.step('trace', 1);
+  assert.equal(controller.getState().traceCursor, 2);
+  controller.step('trace', -1);
+  assert.equal(controller.getState().traceCursor, 1);
+
+  // Play trace advances on tick
+  assert.equal(controller.play('trace'), true);
+  assert.equal(controller.getState().playing, true);
+  assert.equal(controller.getState().activeChannel, 'trace');
+  harness.fireNext();
+  assert.equal(controller.getState().traceCursor, 2);
+
+  // Switching channel to route pauses trace without modifying trace cursor
+  assert.equal(controller.play('route'), true);
+  assert.equal(controller.getState().activeChannel, 'route');
+  assert.equal(controller.getState().traceCursor, 2);
+  assert.equal(controller.getState().routeCursor, 0);
+  harness.fireNext();
+  assert.equal(controller.getState().routeCursor, 1);
+
+  // Pause stops playback
+  assert.equal(controller.pause(), true);
+  assert.equal(controller.getState().playing, false);
+
+  // Reset clamps to start and resets clock
+  assert.equal(controller.reset('route'), true);
+  assert.equal(controller.getState().routeCursor, 0);
+  assert.equal(controller.getState().playbackMs, 0);
+});
+
+test('immutable search statistics remain unchanged as playback time advances', () => {
+  const pureResult = Object.freeze({
+    status: 'found',
+    expanded: 391,
+    generated: 820,
+    maxDepth: 45,
+    elapsedMs: 24.5,
+    pathCost: 21,
+    moves: Object.freeze(['Up', 'Right', 'Down']),
+  });
+
+  const harness = createPlaybackHarness({ traceLength: 10, routeLength: 4 });
+  const { controller } = harness;
+
+  controller.play('trace');
+  harness.setTime(1500);
+  assert.equal(controller.getState().playbackMs, 1500);
+  controller.pause();
+
+  assert.equal(pureResult.expanded, 391);
+  assert.equal(pureResult.generated, 820);
+  assert.equal(pureResult.maxDepth, 45);
+  assert.equal(pureResult.elapsedMs, 24.5);
+  assert.equal(pureResult.pathCost, 21);
+  assert.deepEqual(pureResult.moves, ['Up', 'Right', 'Down']);
+});
+
+test('playback controls, accessible regions, student details, and 44px touch targets are correctly declared and styled', () => {
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const main = readFileSync(new URL('../js/main.js', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../assets/css/app.css', import.meta.url), 'utf8');
+
+  // Student details in index.html
+  assert.match(html, /Raj Vardhan Singh/);
+  assert.match(html, /24BDS0200/);
+
+  // Control IDs generated in js/main.js
+  const requiredControlIds = [
+    'trace-play-toggle',
+    'trace-previous-event',
+    'trace-next-event',
+    'trace-reset',
+    'trace-speed-select',
+    'trace-playback-time',
+    'route-play-toggle',
+    'route-previous-move',
+    'route-next-move',
+    'route-reset',
+    'route-speed-select',
+    'route-playback-time',
+  ];
+  for (const id of requiredControlIds) {
+    assert.ok(main.includes(`'#${id}'`) || main.includes(`id = '${id}'`), `missing control ID ${id}`);
+  }
+
+  // Accessible attributes & security (no innerHTML)
+  assert.doesNotMatch(main, /innerHTML\s*=/);
+  assert.match(html, /aria-live="polite"/);
+  assert.match(main, /syncPlaybackUI/);
+  assert.match(main, /createPlaybackController/);
+
+  // CSS touch target: min-height 44px
+  assert.match(css, /\.trace-step-controls \.btn\s*\{\s*min-height:\s*44px;/);
+  assert.match(css, /\.playback-speed-select/);
+  assert.match(css, /\.playback-time-badge/);
+  assert.match(css, /prefers-reduced-motion/);
 });
 

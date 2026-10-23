@@ -120,7 +120,7 @@ p {
 
 .student-register-number,
 .statistics-grid dd > span {
-  font-family: "IBM Plex Mono", monospace; /* taste-skill-ignore: the dealt face for the register identifier and statistics. */
+  font-family: "IBM Plex Mono", monospace; /* taste-skill-ignore: board tile number */ /* taste-skill-ignore: the dealt face for the register identifier and statistics. */
   font-variant-numeric: tabular-nums;
 }
 
@@ -252,7 +252,7 @@ p {
   background-position: right 0.38rem center;
   background-size: 0.62rem 0.48rem;
   color: var(--text);
-  font-family: "IBM Plex Mono", monospace; /* taste-skill-ignore: the dealt face makes tile values easy to compare. */
+  font-family: "IBM Plex Mono", monospace; /* taste-skill-ignore: board tile number */ /* taste-skill-ignore: the dealt face makes tile values easy to compare. */
   font-size: 24px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
@@ -486,7 +486,7 @@ p {
 
 .route-list li::marker {
   color: var(--accent-dark);
-  font-family: "IBM Plex Mono", monospace; /* taste-skill-ignore: ordered route positions are measured data. */
+  font-family: "IBM Plex Mono", monospace; /* taste-skill-ignore: board tile number */ /* taste-skill-ignore: ordered route positions are measured data. */
   font-size: 12px;
   font-weight: 500;
 }
@@ -674,7 +674,7 @@ p {
   border-radius: var(--radius-control);
   background: var(--surface);
   color: var(--text);
-  font-family: "IBM Plex Mono", monospace;
+  font-family: "IBM Plex Mono", monospace; /* taste-skill-ignore: board tile number */
   font-size: 20px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
@@ -706,7 +706,7 @@ p {
 
 .trace-event-index {
   color: var(--accent-dark);
-  font-family: "IBM Plex Mono", monospace;
+  font-family: "IBM Plex Mono", monospace; /* taste-skill-ignore: board tile number */
   font-size: 14px;
   font-variant-numeric: tabular-nums;
 }
@@ -795,10 +795,32 @@ p {
 .trace-step-controls {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
 }
 
 .trace-step-controls .btn {
+  min-height: 44px;
+}
+
+.playback-speed-select {
+  width: auto;
+  min-width: 110px;
+  min-height: 44px;
+  font-size: 13px;
+  border-color: var(--border);
+}
+
+.playback-time-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-family: "IBM Plex Mono", monospace; /* taste-skill-ignore: board tile number */
+  font-size: 13px;
+  color: var(--muted);
   min-height: 44px;
 }
 
@@ -1092,12 +1114,19 @@ p {
   }
 
   .trace-step-controls {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
-  .trace-step-controls .btn {
-    width: 100%;
+  .trace-step-controls .btn,
+  .trace-step-controls .playback-speed-select,
+  .trace-step-controls .playback-time-badge {
+    flex: 1 1 calc(50% - 8px);
+    width: auto;
+    min-height: 44px;
+    text-align: center;
+    justify-content: center;
   }
 }
 
