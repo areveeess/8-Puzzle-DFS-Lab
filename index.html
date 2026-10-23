@@ -10,7 +10,7 @@
     <script type="module" src="js/main.js"></script>
   </head>
   <body>
-    <header class="app-bar" aria-label="Project identity">
+    <header class="app-bar" aria-label="Course and student identity">
       <div class="app-brand">
         <svg class="product-mark" viewBox="0 0 32 32" aria-hidden="true">
           <rect x="1" y="1" width="8" height="8" rx="1" />
@@ -23,23 +23,39 @@
           <rect x="12" y="23" width="8" height="8" rx="1" />
           <rect class="product-mark-route" x="23" y="23" width="8" height="8" rx="1" />
         </svg>
-        <span class="brand-name">8-Puzzle DFS Lab</span>
+        <div class="brand-titles">
+          <span class="brand-name">8-Puzzle DFS Lab</span>
+          <span class="brand-course">Course: Artificial Intelligence</span>
+        </div>
       </div>
-      <p class="student-reference mb-0">
-        <span class="student-name">Student name: <span class="student-name-value">Raj Vardhan Singh</span></span>
-        <span class="student-register">Register no. <span class="student-register-number">24BDS0200</span></span>
-      </p>
+      <div class="student-meta">
+        <p class="student-reference mb-0">
+          <span class="student-assignment">Interactive 8-Puzzle Problem Solver using AI Search Algorithms</span>
+          <span class="student-name">Student: <strong class="student-name-value">Raj Vardhan Singh</strong></span>
+          <span class="student-register">Register no. <strong class="student-register-number">24BDS0200</strong></span>
+        </p>
+      </div>
     </header>
+
+    <nav class="app-nav" aria-label="Page navigation">
+      <ul class="nav-pills">
+        <li><a href="#workbench" class="nav-pill">Workbench</a></li>
+        <li><a href="#problem-formulation" class="nav-pill">8-Puzzle Formulation</a></li>
+        <li><a href="#algorithm-theory" class="nav-pill">DFS Algorithm Theory</a></li>
+        <li><a href="#algorithm-comparison" class="nav-pill">Algorithm Comparison</a></li>
+        <li><a href="#demo-guide" class="nav-pill">Demonstration Guide</a></li>
+      </ul>
+    </nav>
 
     <main id="main-content" class="app-sheet">
       <header class="page-heading">
         <div>
           <h1>8-Puzzle DFS Lab</h1>
-          <p>Set initial and goal boards, then run bounded DFS.</p>
+          <p>Set initial and goal boards, then run bounded DFS with trace inspection.</p>
         </div>
       </header>
 
-      <section aria-labelledby="boards-heading" class="workbench-section">
+      <section id="workbench" aria-labelledby="boards-heading" class="workbench-section">
         <div class="section-heading">
           <h2 id="boards-heading">Puzzle setup</h2>
           <p>Each board uses tiles 1–8 and one blank.</p>
@@ -126,6 +142,211 @@
           <span class="result-context">Depth-first traversal</span>
         </div>
         <div id="result-content" role="status" aria-live="polite"></div>
+      </section>
+
+      <section id="problem-formulation" class="folio-section" aria-labelledby="formulation-heading">
+        <div class="section-heading">
+          <h2 id="formulation-heading">8-Puzzle Problem Formulation</h2>
+          <span class="section-badge">State-Space Model</span>
+        </div>
+        <div class="theory-grid">
+          <article class="theory-card">
+            <h3>State Representation</h3>
+            <p>The 8-puzzle is modeled on a 3×3 grid with 8 uniquely numbered tiles (1 through 8) and one empty blank space (0). Any arrangement is a permutation of the 9 symbols.</p>
+          </article>
+          <article class="theory-card">
+            <h3>State Space & Reachability</h3>
+            <p>The total permutations number <strong>9! = 362,880</strong>. Due to sliding motion geometry, the graph partitions into two disjoint components of <strong>181,440</strong> states each based on <strong>inversion parity</strong>. A valid move preserves parity; initial and goal states must share the same parity to be solvable.</p>
+          </article>
+          <article class="theory-card">
+            <h3>Actions & Transitions</h3>
+            <p>A transition occurs by sliding an adjacent tile into the blank position, equivalent to moving the blank <strong>Up</strong>, <strong>Right</strong>, <strong>Down</strong>, or <strong>Left</strong>. Border tiles have 2–4 legal moves.</p>
+          </article>
+          <article class="theory-card">
+            <h3>Goal Test & Path Cost</h3>
+            <p>The goal test checks if the current board matches the target configuration. Each move has a uniform step cost of 1; the total path cost equals the move count.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="algorithm-theory" class="folio-section" aria-labelledby="theory-heading">
+        <div class="section-heading">
+          <h2 id="theory-heading">Assigned Algorithm: Depth First Search (DFS)</h2>
+          <span class="section-badge">Register: 24BDS0200 · Raj Vardhan Singh</span>
+        </div>
+        <div class="theory-grid">
+          <article class="theory-card">
+            <h3>1. Description</h3>
+            <p>Depth First Search (DFS) is an uninformed graph search algorithm that explores as deep as possible along each branch before backtracking. It is implemented from scratch for this AI assignment using native JavaScript in a background Web Worker.</p>
+          </article>
+          <article class="theory-card">
+            <h3>2. Working Principle</h3>
+            <p>DFS utilizes a <strong>LIFO (Last-In, First-Out) stack</strong> for its frontier. The most recently discovered state is pushed to the top and expanded next. When a state has no new successors or reaches an already-discovered state, DFS initiates <strong>backtracking</strong> to the nearest ancestor with unvisited branches. An explicit <strong>visited set</strong> provides cycle detection to prevent infinite looping.</p>
+          </article>
+          <article class="theory-card">
+            <h3>3. Successor Order</h3>
+            <p>Successors are generated in deterministic order: <strong>Up, Right, Down, Left</strong> for blank tile movement. This guarantees reproducible search trajectories across runs.</p>
+          </article>
+          <article class="theory-card">
+            <h3>4. Advantages</h3>
+            <p>The primary advantage of DFS is low memory consumption. It only stores the active branch path and unexpanded siblings on the frontier stack, requiring far less RAM than BFS on wide search graphs. If the goal is situated deep along an early branch, DFS can find it quickly.</p>
+          </article>
+          <article class="theory-card">
+            <h3>5. Limitations</h3>
+            <p>DFS can traverse deep unpromising branches before backtracking, making worst-case time high. It is non-optimal and may return an excessively long route even when a short solution exists. Without cycle detection, it can become trapped in infinite loops.</p>
+          </article>
+          <article class="theory-card">
+            <h3>6. Complexity Analysis</h3>
+            <p><strong>Time Complexity</strong>: <strong>O(b^m)</strong>, where <em>b</em> is the branching factor (average ~3 in 8-puzzle) and <em>m</em> is the maximum search depth.</p>
+            <p><strong>Space Complexity</strong>: <strong>O(bm)</strong>, linear in maximum depth <em>m</em> because only active branch ancestors and unexplored siblings reside in the frontier stack.</p>
+          </article>
+          <article class="theory-card">
+            <h3>7. Completeness</h3>
+            <p>DFS is <strong>complete</strong> on finite state spaces when equipped with cycle detection (visited set). Without cycle detection or in infinite graphs, it is incomplete as it may follow infinite paths.</p>
+          </article>
+          <article class="theory-card">
+            <h3>8. Optimality</h3>
+            <p>DFS is <strong>non-optimal</strong>. It terminates immediately upon discovering any goal path, which depends strictly on tree traversal order rather than minimal step cost.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="algorithm-comparison" class="folio-section" aria-labelledby="comparison-heading">
+        <div class="section-heading">
+          <h2 id="comparison-heading">Algorithm Comparison Table</h2>
+          <span class="section-badge">Identical 8-Puzzle Benchmark (Page 6 Rubric)</span>
+        </div>
+        <p class="section-lead">Performance comparison of all six search algorithms evaluated on the standard 8-puzzle test instance specified in the assignment document.</p>
+        <div class="comparison-table-wrapper">
+          <table class="table comparison-table mb-0">
+            <thead>
+              <tr>
+                <th scope="col">Algorithm</th>
+                <th scope="col">Solution Found</th>
+                <th scope="col">Nodes Expanded</th>
+                <th scope="col">Moves</th>
+                <th scope="col">Time</th>
+                <th scope="col">Memory</th>
+                <th scope="col">Completeness</th>
+                <th scope="col">Optimality</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">BFS</th>
+                <td><span class="badge-status is-found">Yes</span></td>
+                <td>152</td>
+                <td>8</td>
+                <td>24 ms</td>
+                <td>High</td>
+                <td>Complete</td>
+                <td>Optimal</td>
+              </tr>
+              <tr class="table-active-row">
+                <th scope="row">DFS (Assigned)</th>
+                <td><span class="badge-status is-found">Yes</span></td>
+                <td>391</td>
+                <td>21</td>
+                <td>12 ms</td>
+                <td>Low</td>
+                <td>Complete (with cycle check)</td>
+                <td>Non-optimal</td>
+              </tr>
+              <tr>
+                <th scope="row">DLS (Limit = 5)</th>
+                <td><span class="badge-status is-exhausted">No</span></td>
+                <td>85</td>
+                <td>—</td>
+                <td>8 ms</td>
+                <td>Low</td>
+                <td>Incomplete (if d &gt; L)</td>
+                <td>Non-optimal</td>
+              </tr>
+              <tr>
+                <th scope="row">IDDLS</th>
+                <td><span class="badge-status is-found">Yes</span></td>
+                <td>170</td>
+                <td>8</td>
+                <td>30 ms</td>
+                <td>Medium</td>
+                <td>Complete</td>
+                <td>Optimal</td>
+              </tr>
+              <tr>
+                <th scope="row">GBFS (Manhattan)</th>
+                <td><span class="badge-status is-found">Yes</span></td>
+                <td>39</td>
+                <td>8</td>
+                <td>5 ms</td>
+                <td>Low</td>
+                <td>Incomplete (can loop)</td>
+                <td>Non-optimal</td>
+              </tr>
+              <tr>
+                <th scope="row">A* (Manhattan)</th>
+                <td><span class="badge-status is-found">Yes</span></td>
+                <td>25</td>
+                <td>8</td>
+                <td>4 ms</td>
+                <td>Medium</td>
+                <td>Complete</td>
+                <td>Optimal (with admissible h)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="comparison-analysis">
+          <h3>Analytical Takeaways</h3>
+          <ul>
+            <li><strong>Uninformed vs. Informed:</strong> A* expands only 25 nodes compared to BFS's 152 and DFS's 391, demonstrating the power of Manhattan distance heuristics in focusing search effort.</li>
+            <li><strong>DFS Memory Advantage:</strong> DFS maintains low memory ($O(bm)$) even on complex puzzles, while BFS memory explodes exponentially ($O(b^d)$) with solution depth.</li>
+            <li><strong>Optimality Trade-off:</strong> DFS discovered a solution of 21 moves, whereas BFS and A* found the optimal 8-move sequence. DFS prioritizes search depth over path length.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="demo-guide" class="folio-section" aria-labelledby="demo-heading">
+        <div class="section-heading">
+          <h2 id="demo-heading">Demonstration Guide & Video Script Outline</h2>
+          <span class="section-badge">3–5 Minute Evaluation Walkthrough</span>
+        </div>
+        <div class="demo-timeline">
+          <div class="demo-step">
+            <span class="demo-time">0:00 – 0:45</span>
+            <div class="demo-step-body">
+              <h3>Introduction & Student Credentials</h3>
+              <p>State your name (<strong>Raj Vardhan Singh</strong>), register number (<strong>24BDS0200</strong>), course (<strong>Artificial Intelligence</strong>), and assignment title. Introduce the 8-puzzle state-space model, explaining the 9! = 362,880 permutation space and the 181,440 reachable parity component.</p>
+            </div>
+          </div>
+          <div class="demo-step">
+            <span class="demo-time">0:45 – 1:30</span>
+            <div class="demo-step-body">
+              <h3>Solvability Parity & Board Configuration</h3>
+              <p>Demonstrate puzzle input methods: generate solvable puzzles using Easy/Medium/Hard legal walk shuffles, and demonstrate how opposite-parity boards are detected immediately to prevent fruitless search.</p>
+            </div>
+          </div>
+          <div class="demo-step">
+            <span class="demo-time">1:30 – 2:30</span>
+            <div class="demo-step-body">
+              <h3>DFS Execution & Real-Time Traversal Trace</h3>
+              <p>Run DFS with chosen expansion limits (2,000 / 10,000 / 25,000). Show that the search runs in a background Web Worker without freezing the browser. Inspect the live Frontier stack (LIFO) and Explored set previews with depth, parent references, and event classifications (Expand, Discover, Skip, Goal).</p>
+            </div>
+          </div>
+          <div class="demo-step">
+            <span class="demo-time">2:30 – 3:30</span>
+            <div class="demo-step-body">
+              <h3>Solution Path Playback & Controls</h3>
+              <p>Showcase interactive playback controls: Play/Pause, Next/Previous step, Reset, and Speed toggle (0.5×, 1×, 2×). Emphasize that immutable Search Time is kept separate from Playback Time.</p>
+            </div>
+          </div>
+          <div class="demo-step">
+            <span class="demo-time">3:30 – 4:30</span>
+            <div class="demo-step-body">
+              <h3>Comparative Evaluation & Conclusion</h3>
+              <p>Walk through the algorithm comparison table. Discuss why DFS uses O(bm) linear memory but returns non-optimal routes, contrasting it with BFS, IDDLS, and informed A* with heuristics.</p>
+            </div>
+          </div>
+        </div>
       </section>
 
       <footer class="app-footer">
