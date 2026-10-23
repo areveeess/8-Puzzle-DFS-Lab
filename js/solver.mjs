@@ -1,3 +1,5 @@
+import { TRACE_CHECKPOINT_INTERVAL, validateTraceHistory } from './trace-model.mjs';
+
 const TILE_COUNT = 9;
 const VALID_TILES = new Set(Array.from({ length: TILE_COUNT }, (_, tile) => tile));
 const MOVE_DIRECTIONS = [
@@ -125,22 +127,68 @@ function reconstructMoves(parentByKey, goalKey) {
   return moves.reverse();
 }
 
-function createTraceCollector() {
+function createTraceCollector(startKey) {
   const events = [];
+  const nodes = [{ collection: 'frontier', stateKey: startKey, depth: 0, parentKey: null, next: null }];
+  const history = {
+    nodes,
+    checkpoints: [{ eventIndex: -1, frontierHead: 0, exploredHead: null, frontierTotal: 1, exploredTotal: 0 }],
+  };
+  let frontierHead = 0;
+  let exploredHead = null;
+  let frontierTotal = 1;
+  let exploredTotal = 0;
   let observed = 0;
   let expansionSequence = 0;
 
   return {
     events,
     nextExpansionId: () => expansionSequence++,
-    record(event) {
+    record(event, { frontier = null, explored = null } = {}, totals = {}) {
       observed += 1;
-      if (events.length < TRACE_EVENT_LIMIT) events.push(event);
+      if (events.length >= TRACE_EVENT_LIMIT) return;
+
+      let frontierDelta = null;
+      let exploredDelta = null;
+      if (frontier?.type === 'pop') {
+        const head = nodes[frontierHead];
+        if (!head || head.stateKey !== frontier.stateKey || frontierTotal < 1) throw new Error('DFS trace frontier drifted from the solver stack.');
+        frontierHead = head.next;
+        frontierTotal -= 1;
+        frontierDelta = { type: 'pop', stateKey: frontier.stateKey };
+      } else if (frontier?.type === 'push') {
+        const nodeId = nodes.length;
+        nodes.push({ collection: 'frontier', stateKey: frontier.stateKey, depth: frontier.depth, parentKey: frontier.parentKey, next: frontierHead });
+        frontierHead = nodeId;
+        frontierTotal += 1;
+        frontierDelta = { type: 'push', nodeId, stateKey: frontier.stateKey };
+      }
+
+      if (explored?.type === 'push') {
+        const nodeId = nodes.length;
+        nodes.push({ collection: 'explored', stateKey: explored.stateKey, depth: explored.depth, parentKey: explored.parentKey, next: exploredHead });
+        exploredHead = nodeId;
+        exploredTotal += 1;
+        exploredDelta = { type: 'push', nodeId, stateKey: explored.stateKey };
+      }
+
+      if (frontierTotal !== totals.frontier || exploredTotal !== totals.explored) throw new Error('DFS trace collection totals drifted from the solver.');
+      events.push({ ...event, frontierDelta, exploredDelta, frontierTotal, exploredTotal });
+
+      if (events.length % TRACE_CHECKPOINT_INTERVAL === 0) {
+        history.checkpoints.push({
+          eventIndex: events.length - 1,
+          frontierHead,
+          exploredHead,
+          frontierTotal,
+          exploredTotal,
+        });
+      }
     },
     summary() {
       const stored = events.length;
       const omitted = observed - stored;
-      return { events, observed, stored, omitted, complete: omitted === 0 };
+      return { events, observed, stored, omitted, complete: omitted === 0, history };
     },
   };
 }
@@ -183,10 +231,13 @@ export function solvePuzzle(start, goal, limit = 2_000) {
   let generated = 1;
   let expanded = 0;
   let maxDepth = 0;
-  const trace = createTraceCollector();
+  const trace = createTraceCollector(startKey);
 
   if (startKey === goalKey) {
-    trace.record({ type: 'goal', expansionId: null, stateKey: startKey, board: [...start], depth: 0, parentKey: null, move: null });
+    trace.record({ type: 'goal', expansionId: null, stateKey: startKey, board: [...start], depth: 0, parentKey: null, move: null }, {}, {
+      frontier: frontier.length,
+      explored: expanded,
+    });
     return createResult('found', startedAt, parentByKey, frontier, expanded, generated, maxDepth, goalKey, trace);
   }
 
@@ -215,6 +266,17 @@ export function solvePuzzle(start, goal, limit = 2_000) {
       depth: currentDepth,
       parentKey: parentByKey.get(currentKey).parentKey,
       successors: successors.map(({ move, board }) => ({ move, stateKey: boardKey(board), board })),
+    }, {
+      frontier: { type: 'pop', stateKey: currentKey },
+      explored: {
+        type: 'push',
+        stateKey: currentKey,
+        depth: currentDepth,
+        parentKey: parentByKey.get(currentKey).parentKey,
+      },
+    }, {
+      frontier: frontier.length,
+      explored: expanded,
     });
 
     for (let index = successors.length - 1; index >= 0; index -= 1) {
@@ -224,7 +286,7 @@ export function solvePuzzle(start, goal, limit = 2_000) {
         trace.record({
           type: 'skip', expansionId, stateKey: nextKey, board, depth: currentDepth + 1,
           parentKey: currentKey, move,
-        });
+        }, {}, { frontier: frontier.length, explored: expanded });
         continue;
       }
 
@@ -241,6 +303,11 @@ export function solvePuzzle(start, goal, limit = 2_000) {
         depth,
         parentKey: currentKey,
         move,
+      }, {
+        frontier: { type: 'push', stateKey: nextKey, depth, parentKey: currentKey },
+      }, {
+        frontier: frontier.length,
+        explored: expanded,
       });
     }
   }
@@ -330,6 +397,7 @@ export function validateSearchResult(result, expectedRunId, { start = null, goal
   const hasContext = isExactPermutation(start) && isExactPermutation(goal);
   const startKey = hasContext ? boardKey(start) : null;
   const goalKey = hasContext ? boardKey(goal) : null;
+  if (!validateTraceHistory(trace, startKey)) return false;
   const expansionById = new Map();
   const discovered = new Map();
   const expanded = new Set();
