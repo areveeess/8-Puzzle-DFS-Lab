@@ -44,9 +44,10 @@ test('all HTML pages exist and use strict relative paths for GitHub Pages subpat
     const absoluteMatches = pageContent.match(/(?:href|src)=["']\/[^"']+/g) ?? [];
     assert.deepEqual(absoluteMatches, [], `${pageName} must not use root-relative paths like href="/..."`);
 
-    // Local assets (CSS, JS) must exist on disk
+    // Local assets (CSS, JS) must exist on disk (ignore external HTTPS CDN assets)
     const assetMatches = [...pageContent.matchAll(/(?:href|src)=["']([^"']+\.(?:css|js))["']/g)].map((m) => m[1]);
     for (const assetPath of assetMatches) {
+      if (assetPath.startsWith('http://') || assetPath.startsWith('https://')) continue;
       const fileUrl = new URL(`../${assetPath}`, import.meta.url);
       assert.ok(existsSync(fileUrl), `Asset ${assetPath} referenced in ${pageName} must exist on disk`);
     }
@@ -54,8 +55,20 @@ test('all HTML pages exist and use strict relative paths for GitHub Pages subpat
     // HTML link targets must exist on disk
     const htmlMatches = [...pageContent.matchAll(/(?:href)=["']([^"']+\.html)["']/g)].map((m) => m[1]);
     for (const htmlTarget of htmlMatches) {
+      if (htmlTarget.startsWith('http://') || htmlTarget.startsWith('https://')) continue;
       const targetUrl = new URL(`../${htmlTarget}`, import.meta.url);
       assert.ok(existsSync(targetUrl), `Target ${htmlTarget} linked in ${pageName} must exist on disk`);
     }
+  }
+});
+
+test('KaTeX math library is integrated across theoretical pages', () => {
+  const pages = ['formulation.html', 'algorithm.html', 'comparison.html'];
+  for (const pageName of pages) {
+    const pageUrl = new URL(`../${pageName}`, import.meta.url);
+    const pageContent = readFileSync(pageUrl, 'utf8');
+    assert.match(pageContent, /katex(\.min)?\.css/, `${pageName} must link KaTeX stylesheet`);
+    assert.match(pageContent, /katex(\.min)?\.js/, `${pageName} must load KaTeX script`);
+    assert.match(pageContent, /auto-render(\.min)?\.js/, `${pageName} must load KaTeX auto-render script`);
   }
 });

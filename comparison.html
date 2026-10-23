@@ -7,6 +7,32 @@
     <title>Comparison Page · AI Search Algorithms</title>
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/app.css">
+    <!-- KaTeX Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const render = () => {
+          if (typeof renderMathInElement === "function") {
+            renderMathInElement(document.body, {
+              delimiters: [
+                { left: "$$", right: "$$", display: true },
+                { left: "$", right: "$", display: false },
+                { left: "\\(", right: "\\)", display: false },
+                { left: "\\[", right: "\\]", display: true }
+              ],
+              throwOnError: false
+            });
+          }
+        };
+        if (typeof renderMathInElement === "function") {
+          render();
+        } else {
+          window.addEventListener("load", render);
+        }
+      });
+    </script>
   </head>
   <body>
     <header class="app-bar" aria-label="Course and student identity">
@@ -205,6 +231,22 @@
               Combining path cost $g(n)$ and admissible Manhattan heuristic $h(n)$ ($f(n) = g(n) + h(n)$), A* expanded only <strong>25 nodes</strong> in <strong>4 ms</strong>. It achieves the theoretical minimum node expansions while strictly preserving both completeness and optimality.
             </li>
           </ul>
+        </div>
+        <div class="comparison-analysis mt-4">
+          <h3>Heuristic Functions &amp; Domination</h3>
+          <p class="mb-2">Informed search algorithms (GBFS and A*) evaluate node priority using admissible heuristic functions:</p>
+          <div class="theory-grid">
+            <article class="theory-card">
+              <h4 class="h6 mb-2">Misplaced Tiles Heuristic ($h_1$)</h4>
+              <p>$$h_1(n) = \sum_{i=1}^{8} [tile_i \neq goal_i]$$</p>
+              <p class="mb-0" style="font-size: 13px;">Counts tiles out of their goal position (excluding the blank). Admissible ($h_1(n) \le h^*(n)$) and consistent.</p>
+            </article>
+            <article class="theory-card">
+              <h4 class="h6 mb-2">Manhattan Distance Heuristic ($h_2$)</h4>
+              <p>$$h_2(n) = \sum_{i=1}^{8} (|x_i - x_{goal,i}| + |y_i - y_{goal,i}|)$$</p>
+              <p class="mb-0" style="font-size: 13px;">Sum of grid distances each tile must traverse. Strictly dominates misplaced tiles ($h_2(n) \ge h_1(n)$).</p>
+            </article>
+          </div>
         </div>
       </section>
 
